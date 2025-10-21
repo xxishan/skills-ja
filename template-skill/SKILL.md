@@ -1,6 +1,6 @@
 ---
 name: template-skill
-description: Replace with description of the skill and when Claude should use it.
+description: スキルの説明と、Claudeがいつこれを使用すべきかの説明に置き換えてください。
 ---
 
-# Insert instructions below
+# 以下に指示を記述してください

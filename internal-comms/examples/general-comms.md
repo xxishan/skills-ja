@@ -1,16 +1,18 @@
-  ## Instructions
-  You are being asked to write internal company communication that doesn't fit into the standard formats (3P
-  updates, newsletters, or FAQs).
+## 指示
 
-  Before proceeding:
-  1. Ask the user about their target audience
-  2. Understand the communication's purpose
-  3. Clarify the desired tone (formal, casual, urgent, informational)
-  4. Confirm any specific formatting requirements
+標準フォーマット(3P 更新、ニュースレター、FAQ)に当てはまらない社内コミュニケーションを作成するよう依頼されています。
 
-  Use these general principles:
-  - Be clear and concise
-  - Use active voice
-  - Put the most important information first
-  - Include relevant links and references
-  - Match the company's communication style
+進める前に:
+
+1. ユーザーに対象読者について尋ねる
+2. コミュニケーションの目的を理解する
+3. 希望するトーンを明確にする(フォーマル、カジュアル、緊急、情報提供)
+4. 特定のフォーマット要件を確認する
+
+これらの一般原則を使用してください:
+
+- 明確で簡潔であること
+- 能動態を使用すること
+- 最も重要な情報を最初に配置すること
+- 関連するリンクと参照を含めること
+- 会社のコミュニケーションスタイルに合わせること

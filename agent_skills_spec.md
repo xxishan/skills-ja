@@ -1,55 +1,54 @@
-# Agent Skills Spec
+# エージェントスキル仕様
 
-A skill is a folder of instructions, scripts, and resources that agents can discover and load dynamically to perform better at specific tasks. In order for the folder to be recognized as a skill, it must contain a `SKILL.md` file. 
+スキルとは、エージェントが特定のタスクをより適切に実行するために、動的に発見して読み込むことができる指示、スクリプト、リソースをまとめたフォルダです。フォルダがスキルとして認識されるためには、`SKILL.md` ファイルが含まれている必要があります。
 
-# Skill Folder Layout
+# スキルフォルダのレイアウト
 
-A minimal skill folder looks like this: 
+最小限のスキルフォルダは以下のようになります：
 
 ```
 my-skill/
   - SKILL.md
 ```
 
-More complex skills can add additional directories and files as needed.
+より複雑なスキルでは、必要に応じて追加のディレクトリやファイルを追加できます。
 
+# SKILL.md ファイル
 
-# The SKILL.md file
+スキルの「エントリーポイント」は `SKILL.md` ファイルです。これは存在する必要がある唯一のファイルです。このファイルは YAML フロントマターで始まり、その後に通常の Markdown が続きます。
 
-The skill's "entrypoint" is the `SKILL.md` file. It is the only file required to exist. The file must start with a YAML frontmatter followed by regular Markdown. 
+## YAML フロントマター
 
-## YAML Frontmatter
-
-The YAML frontmatter has 2 required properties:
+YAML フロントマターには 2 つの必須プロパティがあります：
 
 - `name`
-    - The name of the skill in hyphen-case
-    - Restricted to lowercase Unicode alphanumeric + hyphen
-    - Must match the name of the directory containing the SKILL.md
-- `description` 
-    - Description of what the skill does and when Claude should use it
+  - ハイフンケースでのスキル名
+  - 小文字の Unicode 英数字 + ハイフンに制限されます
+  - SKILL.md を含むディレクトリの名前と一致する必要があります
+- `description`
+  - スキルが何をするか、Claude がいつそれを使用すべきかの説明
 
-There are 3 optional properties:
+3 つのオプションプロパティがあります：
 
 - `license`
-    - The license applied to the skill
-    - We recommend keeping it short (either the name of a license or the name of a bundled license file)
-- `allowed-tools` 
-    - A list of tools that are pre-approved to run
-    - Currently only supported in Claude Code
+  - スキルに適用されるライセンス
+  - 短く保つことをお勧めします（ライセンスの名前または同梱されているライセンスファイルの名前のいずれか）
+- `allowed-tools`
+  - 実行が事前承認されたツールのリスト
+  - 現在は Claude Code でのみサポートされています
 - `metadata`
-    - A map from string keys to string values
-    - Clients can use this to store additional properties not defined by the Agent Skills Spec
-    - We recommend making your key names reasonably unique to avoid accidental conflicts
+  - 文字列キーから文字列値へのマップ
+  - クライアントはこれを使用して、エージェントスキル仕様で定義されていない追加のプロパティを保存できます
+  - 誤った競合を避けるために、キー名を適度にユニークにすることをお勧めします
 
-## Markdown Body
+## Markdown 本文
 
-The Markdown body has no restrictions on it.
+Markdown 本文には制限がありません。
 
-# Additional Information
+# 追加情報
 
-For a minimal example, see the `template-skill` example.
+最小限の例については、`template-skill` の例を参照してください。
 
-# Version History
+# バージョン履歴
 
-- 1.0 (2025-10-16) Public Launch
+- 1.0 (2025-10-16) 公開リリース

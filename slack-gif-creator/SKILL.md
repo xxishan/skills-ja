@@ -1,119 +1,127 @@
 ---
 name: slack-gif-creator
-description: Toolkit for creating animated GIFs optimized for Slack, with validators for size constraints and composable animation primitives. This skill applies when users request animated GIFs or emoji animations for Slack from descriptions like "make me a GIF for Slack of X doing Y".
-license: Complete terms in LICENSE.txt
+description: Slackに最適化されたアニメーションGIFを作成するためのツールキット。サイズ制約のバリデータと組み合わせ可能なアニメーションプリミティブを提供します。このスキルは、ユーザーが「XがYをしているSlack用のGIFを作って」といったリクエストでSlack用のアニメーションGIFや絵文字アニメーションを求める際に適用されます。
+license: 完全な条件はLICENSE.txtに記載
 ---
 
-# Slack GIF Creator - Flexible Toolkit
+# Slack GIF Creator - フレキシブルツールキット
 
-A toolkit for creating animated GIFs optimized for Slack. Provides validators for Slack's constraints, composable animation primitives, and optional helper utilities. **Apply these tools however needed to achieve the creative vision.**
+Slack に最適化されたアニメーション GIF を作成するためのツールキットです。Slack の制約に対するバリデータ、組み合わせ可能なアニメーションプリミティブ、オプションのヘルパーユーティリティを提供します。**これらのツールをクリエイティブなビジョンを実現するために必要に応じて適用してください。**
 
-## Slack's Requirements
+## Slack の要件
 
-Slack has specific requirements for GIFs based on their use:
+Slack は用途に応じて GIF に特定の要件があります：
 
-**Message GIFs:**
-- Max size: ~2MB
-- Optimal dimensions: 480x480
-- Typical FPS: 15-20
-- Color limit: 128-256
-- Duration: 2-5s
+**メッセージ GIF:**
 
-**Emoji GIFs:**
-- Max size: 64KB (strict limit)
-- Optimal dimensions: 128x128
-- Typical FPS: 10-12
-- Color limit: 32-48
-- Duration: 1-2s
+- 最大サイズ: 約 2MB
+- 最適な寸法: 480x480
+- 一般的な FPS: 15-20
+- 色数制限: 128-256
+- 長さ: 2-5 秒
 
-**Emoji GIFs are challenging** - the 64KB limit is strict. Strategies that help:
-- Limit to 10-15 frames total
-- Use 32-48 colors maximum
-- Keep designs simple
-- Avoid gradients
-- Validate file size frequently
+**絵文字 GIF:**
 
-## Toolkit Structure
+- 最大サイズ: 64KB（厳密な制限）
+- 最適な寸法: 128x128
+- 一般的な FPS: 10-12
+- 色数制限: 32-48
+- 長さ: 1-2 秒
 
-This skill provides three types of tools:
+**絵文字 GIF は難易度が高い** - 64KB の制限は厳格です。役立つ戦略:
 
-1. **Validators** - Check if a GIF meets Slack's requirements
-2. **Animation Primitives** - Composable building blocks for motion (shake, bounce, move, kaleidoscope)
-3. **Helper Utilities** - Optional functions for common needs (text, colors, effects)
+- フレーム数を合計 10-15 フレームに制限
+- 最大 32-48 色を使用
+- デザインをシンプルに保つ
+- グラデーションを避ける
+- ファイルサイズを頻繁に検証
 
-**Complete creative freedom is available in how these tools are applied.**
+## ツールキットの構造
 
-## Core Validators
+このスキルは 3 種類のツールを提供します：
 
-To ensure a GIF meets Slack's constraints, use these validators:
+1. **バリデータ** - GIF が Slack の要件を満たしているかチェック
+2. **アニメーションプリミティブ** - 動きの組み合わせ可能なビルディングブロック（シェイク、バウンス、移動、万華鏡）
+3. **ヘルパーユーティリティ** - 一般的なニーズに対応するオプション機能（テキスト、色、エフェクト）
+
+**これらのツールの適用方法については完全なクリエイティブの自由があります。**
+
+## コアバリデータ
+
+GIF が Slack の制約を満たしていることを確認するために、これらのバリデータを使用します：
 
 ```python
 from core.gif_builder import GIFBuilder
 
-# After creating your GIF, check if it meets requirements
+# GIFを作成した後、要件を満たしているかチェック
 builder = GIFBuilder(width=128, height=128, fps=10)
-# ... add your frames however you want ...
+# ... 任意の方法でフレームを追加 ...
 
-# Save and check size
+# 保存してサイズをチェック
 info = builder.save('emoji.gif', num_colors=48, optimize_for_emoji=True)
 
-# The save method automatically warns if file exceeds limits
-# info dict contains: size_kb, size_mb, frame_count, duration_seconds
+# saveメソッドはファイルが制限を超えている場合に自動的に警告します
+# info辞書の内容: size_kb, size_mb, frame_count, duration_seconds
 ```
 
-**File size validator**:
+**ファイルサイズバリデータ**:
+
 ```python
 from core.validators import check_slack_size
 
-# Check if GIF meets size limits
+# GIFがサイズ制限を満たしているかチェック
 passes, info = check_slack_size('emoji.gif', is_emoji=True)
-# Returns: (True/False, dict with size details)
+# 戻り値: (True/False, サイズ詳細の辞書)
 ```
 
-**Dimension validator**:
+**寸法バリデータ**:
+
 ```python
 from core.validators import validate_dimensions
 
-# Check dimensions
+# 寸法をチェック
 passes, info = validate_dimensions(128, 128, is_emoji=True)
-# Returns: (True/False, dict with dimension details)
+# 戻り値: (True/False, 寸法詳細の辞書)
 ```
 
-**Complete validation**:
+**完全な検証**:
+
 ```python
 from core.validators import validate_gif, is_slack_ready
 
-# Run all validations
+# すべての検証を実行
 all_pass, results = validate_gif('emoji.gif', is_emoji=True)
 
-# Or quick check
+# または簡易チェック
 if is_slack_ready('emoji.gif', is_emoji=True):
-    print("Ready to upload!")
+    print("アップロード準備完了！")
 ```
 
-## Animation Primitives
+## アニメーションプリミティブ
 
-These are composable building blocks for motion. Apply these to any object in any combination:
+これらは動きのための組み合わせ可能なビルディングブロックです。任意のオブジェクトに任意の組み合わせで適用できます：
 
-### Shake
+### シェイク（揺れ）
+
 ```python
 from templates.shake import create_shake_animation
 
-# Shake an emoji
+# 絵文字を揺らす
 frames = create_shake_animation(
     object_type='emoji',
     object_data={'emoji': '😱', 'size': 80},
     num_frames=20,
     shake_intensity=15,
-    direction='both'  # or 'horizontal', 'vertical'
+    direction='both'  # または 'horizontal', 'vertical'
 )
 ```
 
-### Bounce
+### バウンス（跳ねる）
+
 ```python
 from templates.bounce import create_bounce_animation
 
-# Bounce a circle
+# 円を跳ねさせる
 frames = create_bounce_animation(
     object_type='circle',
     object_data={'radius': 40, 'color': (255, 100, 100)},
@@ -122,11 +130,12 @@ frames = create_bounce_animation(
 )
 ```
 
-### Spin / Rotate
+### スピン / 回転
+
 ```python
 from templates.spin import create_spin_animation, create_loading_spinner
 
-# Clockwise spin
+# 時計回りのスピン
 frames = create_spin_animation(
     object_type='emoji',
     object_data={'emoji': '🔄', 'size': 100},
@@ -134,119 +143,125 @@ frames = create_spin_animation(
     full_rotations=2
 )
 
-# Wobble rotation
+# 揺れながら回転
 frames = create_spin_animation(rotation_type='wobble', full_rotations=3)
 
-# Loading spinner
+# ローディングスピナー
 frames = create_loading_spinner(spinner_type='dots')
 ```
 
-### Pulse / Heartbeat
+### パルス / ハートビート
+
 ```python
 from templates.pulse import create_pulse_animation, create_attention_pulse
 
-# Smooth pulse
+# スムーズなパルス
 frames = create_pulse_animation(
     object_data={'emoji': '❤️', 'size': 100},
     pulse_type='smooth',
     scale_range=(0.8, 1.2)
 )
 
-# Heartbeat (double-pump)
+# ハートビート（ダブルパンプ）
 frames = create_pulse_animation(pulse_type='heartbeat')
 
-# Attention pulse for emoji GIFs
+# 絵文字GIF用のアテンションパルス
 frames = create_attention_pulse(emoji='⚠️', num_frames=20)
 ```
 
-### Fade
+### フェード
+
 ```python
 from templates.fade import create_fade_animation, create_crossfade
 
-# Fade in
+# フェードイン
 frames = create_fade_animation(fade_type='in')
 
-# Fade out
+# フェードアウト
 frames = create_fade_animation(fade_type='out')
 
-# Crossfade between two emojis
+# 2つの絵文字間のクロスフェード
 frames = create_crossfade(
     object1_data={'emoji': '😊', 'size': 100},
     object2_data={'emoji': '😂', 'size': 100}
 )
 ```
 
-### Zoom
+### ズーム
+
 ```python
 from templates.zoom import create_zoom_animation, create_explosion_zoom
 
-# Zoom in dramatically
+# 劇的にズームイン
 frames = create_zoom_animation(
     zoom_type='in',
     scale_range=(0.1, 2.0),
     add_motion_blur=True
 )
 
-# Zoom out
+# ズームアウト
 frames = create_zoom_animation(zoom_type='out')
 
-# Explosion zoom
+# 爆発ズーム
 frames = create_explosion_zoom(emoji='💥')
 ```
 
-### Explode / Shatter
+### 爆発 / 砕ける
+
 ```python
 from templates.explode import create_explode_animation, create_particle_burst
 
-# Burst explosion
+# バースト爆発
 frames = create_explode_animation(
     explode_type='burst',
     num_pieces=25
 )
 
-# Shatter effect
+# シャターエフェクト
 frames = create_explode_animation(explode_type='shatter')
 
-# Dissolve into particles
+# パーティクルに溶解
 frames = create_explode_animation(explode_type='dissolve')
 
-# Particle burst
+# パーティクルバースト
 frames = create_particle_burst(particle_count=30)
 ```
 
-### Wiggle / Jiggle
+### ウィグル / ジグル（小刻みな揺れ）
+
 ```python
 from templates.wiggle import create_wiggle_animation, create_excited_wiggle
 
-# Jello wobble
+# ゼリーのような揺れ
 frames = create_wiggle_animation(
     wiggle_type='jello',
     intensity=1.0,
     cycles=2
 )
 
-# Wave motion
+# 波の動き
 frames = create_wiggle_animation(wiggle_type='wave')
 
-# Excited wiggle for emoji GIFs
+# 絵文字GIF用の興奮したウィグル
 frames = create_excited_wiggle(emoji='🎉')
 ```
 
-### Slide
+### スライド
+
 ```python
 from templates.slide import create_slide_animation, create_multi_slide
 
-# Slide in from left with overshoot
+# 左からオーバーシュート付きでスライドイン
 frames = create_slide_animation(
     direction='left',
     slide_type='in',
     overshoot=True
 )
 
-# Slide across
+# 横切るスライド
 frames = create_slide_animation(direction='left', slide_type='across')
 
-# Multiple objects sliding in sequence
+# 複数のオブジェクトが順番にスライドイン
 objects = [
     {'data': {'emoji': '🎯', 'size': 60}, 'direction': 'left', 'final_pos': (120, 240)},
     {'data': {'emoji': '🎪', 'size': 60}, 'direction': 'right', 'final_pos': (240, 240)}
@@ -254,47 +269,50 @@ objects = [
 frames = create_multi_slide(objects, stagger_delay=5)
 ```
 
-### Flip
+### フリップ（反転）
+
 ```python
 from templates.flip import create_flip_animation, create_quick_flip
 
-# Horizontal flip between two emojis
+# 2つの絵文字間の水平フリップ
 frames = create_flip_animation(
     object1_data={'emoji': '😊', 'size': 120},
     object2_data={'emoji': '😂', 'size': 120},
     flip_axis='horizontal'
 )
 
-# Vertical flip
+# 垂直フリップ
 frames = create_flip_animation(flip_axis='vertical')
 
-# Quick flip for emoji GIFs
+# 絵文字GIF用のクイックフリップ
 frames = create_quick_flip('👍', '👎')
 ```
 
-### Morph / Transform
+### モーフ / トランスフォーム
+
 ```python
 from templates.morph import create_morph_animation, create_reaction_morph
 
-# Crossfade morph
+# クロスフェードモーフ
 frames = create_morph_animation(
     object1_data={'emoji': '😊', 'size': 100},
     object2_data={'emoji': '😂', 'size': 100},
     morph_type='crossfade'
 )
 
-# Scale morph (shrink while other grows)
+# スケールモーフ（一方が縮みながらもう一方が大きくなる）
 frames = create_morph_animation(morph_type='scale')
 
-# Spin morph (3D flip-like)
+# スピンモーフ（3Dフリップのような）
 frames = create_morph_animation(morph_type='spin_morph')
 ```
 
-### Move Effect
+### 移動エフェクト
+
 ```python
 from templates.move import create_move_animation
 
-# Linear movement
+# 直線的な移動
 frames = create_move_animation(
     object_type='emoji',
     object_data={'emoji': '🚀', 'size': 60},
@@ -304,7 +322,7 @@ frames = create_move_animation(
     easing='ease_out'
 )
 
-# Arc movement (parabolic trajectory)
+# 弧を描く移動（放物線軌道）
 frames = create_move_animation(
     object_type='emoji',
     object_data={'emoji': '⚽', 'size': 60},
@@ -314,7 +332,7 @@ frames = create_move_animation(
     motion_params={'arc_height': 150}
 )
 
-# Circular movement
+# 円運動
 frames = create_move_animation(
     object_type='emoji',
     object_data={'emoji': '🌍', 'size': 50},
@@ -322,11 +340,11 @@ frames = create_move_animation(
     motion_params={
         'center': (240, 240),
         'radius': 120,
-        'angle_range': 360  # full circle
+        'angle_range': 360  # 完全な円
     }
 )
 
-# Wave movement
+# 波の動き
 frames = create_move_animation(
     motion_type='wave',
     motion_params={
@@ -335,38 +353,40 @@ frames = create_move_animation(
     }
 )
 
-# Or use low-level easing functions
+# または低レベルのイージング関数を使用
 from core.easing import interpolate, calculate_arc_motion
 
 for i in range(num_frames):
     t = i / (num_frames - 1)
     x = interpolate(start_x, end_x, t, easing='ease_out')
-    # Or: x, y = calculate_arc_motion(start, end, height, t)
+    # または: x, y = calculate_arc_motion(start, end, height, t)
 ```
 
-### Kaleidoscope Effect
+### 万華鏡エフェクト
+
 ```python
 from templates.kaleidoscope import apply_kaleidoscope, create_kaleidoscope_animation
 
-# Apply to a single frame
+# 単一フレームに適用
 kaleido_frame = apply_kaleidoscope(frame, segments=8)
 
-# Or create animated kaleidoscope
+# またはアニメーション万華鏡を作成
 frames = create_kaleidoscope_animation(
-    base_frame=my_frame,  # or None for demo pattern
+    base_frame=my_frame,  # またはデモパターンの場合はNone
     num_frames=30,
     segments=8,
     rotation_speed=1.0
 )
 
-# Simple mirror effects (faster)
+# シンプルなミラーエフェクト（より高速）
 from templates.kaleidoscope import apply_simple_mirror
 
-mirrored = apply_simple_mirror(frame, mode='quad')  # 4-way mirror
-# modes: 'horizontal', 'vertical', 'quad', 'radial'
+mirrored = apply_simple_mirror(frame, mode='quad')  # 4方向ミラー
+# モード: 'horizontal', 'vertical', 'quad', 'radial'
 ```
 
-**To compose primitives freely, follow these patterns:**
+**プリミティブを自由に組み合わせるには、以下のパターンに従ってください：**
+
 ```python
 # Example: Bounce + shake for impact
 for i in range(num_frames):
@@ -387,42 +407,43 @@ for i in range(num_frames):
     builder.add_frame(frame)
 ```
 
-## Helper Utilities
+## ヘルパーユーティリティ
 
-These are optional helpers for common needs. **Use, modify, or replace these with custom implementations as needed.**
+これらは一般的なニーズに対応するオプションのヘルパーです。**必要に応じてこれらを使用、変更、またはカスタム実装に置き換えてください。**
 
-### GIF Builder (Assembly & Optimization)
+### GIF ビルダー（アセンブリと最適化）
 
 ```python
 from core.gif_builder import GIFBuilder
 
-# Create builder with your chosen settings
+# 選択した設定でビルダーを作成
 builder = GIFBuilder(width=480, height=480, fps=20)
 
-# Add frames (however you created them)
+# フレームを追加（作成方法は問わない）
 for frame in my_frames:
     builder.add_frame(frame)
 
-# Save with optimization
+# 最適化して保存
 builder.save('output.gif',
              num_colors=128,
              optimize_for_emoji=False)
 ```
 
-Key features:
-- Automatic color quantization
-- Duplicate frame removal
-- Size warnings for Slack limits
-- Emoji mode (aggressive optimization)
+主な機能:
 
-### Text Rendering
+- 自動カラー量子化
+- 重複フレーム削除
+- Slack の制限に対するサイズ警告
+- 絵文字モード（積極的な最適化）
 
-For small GIFs like emojis, text readability is challenging. A common solution involves adding outlines:
+### テキストレンダリング
+
+絵文字のような小さな GIF では、テキストの可読性が課題です。一般的な解決策はアウトラインを追加することです：
 
 ```python
 from core.typography import draw_text_with_outline, TYPOGRAPHY_SCALE
 
-# Text with outline (helps readability)
+# アウトライン付きテキスト（可読性を向上）
 draw_text_with_outline(
     frame, "BONK!",
     position=(240, 100),
@@ -434,109 +455,112 @@ draw_text_with_outline(
 )
 ```
 
-To implement custom text rendering, use PIL's `ImageDraw.text()` which works fine for larger GIFs.
+カスタムテキストレンダリングを実装するには、PIL の`ImageDraw.text()`を使用します。これは大きな GIF では問題なく機能します。
 
-### Color Management
+### カラーマネジメント
 
-Professional-looking GIFs often use cohesive color palettes:
+プロフェッショナルな見た目の GIF は、統一されたカラーパレットを使用することがよくあります：
 
 ```python
 from core.color_palettes import get_palette
 
-# Get a pre-made palette
-palette = get_palette('vibrant')  # or 'pastel', 'dark', 'neon', 'professional'
+# 事前作成されたパレットを取得
+palette = get_palette('vibrant')  # または 'pastel', 'dark', 'neon', 'professional'
 
 bg_color = palette['background']
 text_color = palette['primary']
 accent_color = palette['accent']
 ```
 
-To work with colors directly, use RGB tuples - whatever works for the use case.
+色を直接扱うには、RGB タプルを使用します - ユースケースに応じて何でも使用できます。
 
-### Visual Effects
+### ビジュアルエフェクト
 
-Optional effects for impact moments:
+衝撃の瞬間のためのオプションエフェクト：
 
 ```python
 from core.visual_effects import ParticleSystem, create_impact_flash, create_shockwave_rings
 
-# Particle system
+# パーティクルシステム
 particles = ParticleSystem()
 particles.emit_sparkles(x=240, y=200, count=15)
 particles.emit_confetti(x=240, y=200, count=20)
 
-# Update and render each frame
+# 各フレームで更新とレンダリング
 particles.update()
 particles.render(frame)
 
-# Flash effect
+# フラッシュエフェクト
 frame = create_impact_flash(frame, position=(240, 200), radius=100)
 
-# Shockwave rings
+# 衝撃波リング
 frame = create_shockwave_rings(frame, position=(240, 200), radii=[30, 60, 90])
 ```
 
-### Easing Functions
+### イージング関数
 
-Smooth motion uses easing instead of linear interpolation:
+スムーズな動きには線形補間ではなくイージングを使用します：
 
 ```python
 from core.easing import interpolate
 
-# Object falling (accelerates)
+# 落下するオブジェクト（加速）
 y = interpolate(start=0, end=400, t=progress, easing='ease_in')
 
-# Object landing (decelerates)
+# 着地するオブジェクト（減速）
 y = interpolate(start=0, end=400, t=progress, easing='ease_out')
 
-# Bouncing
+# バウンス
 y = interpolate(start=0, end=400, t=progress, easing='bounce_out')
 
-# Overshoot (elastic)
+# オーバーシュート（弾性）
 scale = interpolate(start=0.5, end=1.0, t=progress, easing='elastic_out')
 ```
 
-Available easings: `linear`, `ease_in`, `ease_out`, `ease_in_out`, `bounce_out`, `elastic_out`, `back_out` (overshoot), and more in `core/easing.py`.
+使用可能なイージング: `linear`, `ease_in`, `ease_out`, `ease_in_out`, `bounce_out`, `elastic_out`, `back_out`（オーバーシュート）、その他は`core/easing.py`にあります。
 
-### Frame Composition
+### フレーム合成
 
-Basic drawing utilities if you need them:
+必要に応じて使用できる基本的な描画ユーティリティ：
 
 ```python
 from core.frame_composer import (
-    create_gradient_background,  # Gradient backgrounds
-    draw_emoji_enhanced,         # Emoji with optional shadow
-    draw_circle_with_shadow,     # Shapes with depth
-    draw_star                    # 5-pointed stars
+    create_gradient_background,  # グラデーション背景
+    draw_emoji_enhanced,         # オプションで影付き絵文字
+    draw_circle_with_shadow,     # 奥行きのある図形
+    draw_star                    # 5つ星
 )
 
-# Gradient background
+# グラデーション背景
 frame = create_gradient_background(480, 480, top_color, bottom_color)
 
-# Emoji with shadow
+# 影付き絵文字
 draw_emoji_enhanced(frame, '🎉', position=(200, 200), size=80, shadow=True)
 ```
 
-## Optimization Strategies
+## 最適化戦略
 
-When your GIF is too large:
+GIF が大きすぎる場合：
 
-**For Message GIFs (>2MB):**
-1. Reduce frames (lower FPS or shorter duration)
-2. Reduce colors (128 → 64 colors)
-3. Reduce dimensions (480x480 → 320x320)
-4. Enable duplicate frame removal
+**メッセージ GIF（>2MB）の場合：**
 
-**For Emoji GIFs (>64KB) - be aggressive:**
-1. Limit to 10-12 frames total
-2. Use 32-40 colors maximum
-3. Avoid gradients (solid colors compress better)
-4. Simplify design (fewer elements)
-5. Use `optimize_for_emoji=True` in save method
+1. フレーム数を減らす（FPS を下げるか長さを短くする）
+2. 色数を減らす（128 → 64 色）
+3. 寸法を減らす（480x480 → 320x320）
+4. 重複フレーム削除を有効化
 
-## Example Composition Patterns
+**絵文字 GIF（>64KB）の場合 - 積極的に：**
 
-### Simple Reaction (Pulsing)
+1. 合計 10-12 フレームに制限
+2. 最大 32-40 色を使用
+3. グラデーションを避ける（単色の方が圧縮率が良い）
+4. デザインを簡素化（要素を減らす）
+5. save メソッドで`optimize_for_emoji=True`を使用
+
+## 組み合わせパターンの例
+
+### シンプルなリアクション（パルス）
+
 ```python
 builder = GIFBuilder(128, 128, 10)
 
@@ -553,16 +577,17 @@ for i in range(12):
 
 builder.save('reaction.gif', num_colors=40, optimize_for_emoji=True)
 
-# Validate
+# 検証
 from core.validators import check_slack_size
 check_slack_size('reaction.gif', is_emoji=True)
 ```
 
-### Action with Impact (Bounce + Flash)
+### 衝撃を伴うアクション（バウンス + フラッシュ）
+
 ```python
 builder = GIFBuilder(480, 480, 20)
 
-# Phase 1: Object falls
+# フェーズ1: オブジェクトが落下
 for i in range(15):
     frame = create_gradient_background(480, 480, (240, 248, 255), (200, 230, 255))
     t = i / 14
@@ -570,17 +595,17 @@ for i in range(15):
     draw_emoji_enhanced(frame, '⚽', position=(220, int(y)), size=80)
     builder.add_frame(frame)
 
-# Phase 2: Impact + flash
+# フェーズ2: 衝撃 + フラッシュ
 for i in range(8):
     frame = create_gradient_background(480, 480, (240, 248, 255), (200, 230, 255))
 
-    # Flash on first frames
+    # 最初のフレームでフラッシュ
     if i < 3:
         frame = create_impact_flash(frame, (240, 350), radius=120, intensity=0.6)
 
     draw_emoji_enhanced(frame, '⚽', position=(220, 350), size=80)
 
-    # Text appears
+    # テキストが表示される
     if i > 2:
         draw_text_with_outline(frame, "GOAL!", position=(240, 150),
                               font_size=60, text_color=(255, 68, 68),
@@ -591,11 +616,12 @@ for i in range(8):
 builder.save('goal.gif', num_colors=128)
 ```
 
-### Combining Primitives (Move + Shake)
+### プリミティブの組み合わせ（移動 + シェイク）
+
 ```python
 from templates.shake import create_shake_animation
 
-# Create shake animation
+# シェイクアニメーションを作成
 shake_frames = create_shake_animation(
     object_type='emoji',
     object_data={'emoji': '😰', 'size': 70},
@@ -603,21 +629,21 @@ shake_frames = create_shake_animation(
     shake_intensity=12
 )
 
-# Create moving element that triggers the shake
+# シェイクをトリガーする移動要素を作成
 builder = GIFBuilder(480, 480, 20)
 for i in range(40):
     t = i / 39
 
     if i < 20:
-        # Before trigger - use blank frame with moving object
+        # トリガー前 - 移動するオブジェクトを含む空のフレームを使用
         frame = create_blank_frame(480, 480, (255, 255, 255))
         x = interpolate(50, 300, t * 2, 'linear')
         draw_emoji_enhanced(frame, '🚗', position=(int(x), 300), size=60)
         draw_emoji_enhanced(frame, '😰', position=(350, 200), size=70)
     else:
-        # After trigger - use shake frame
+        # トリガー後 - シェイクフレームを使用
         frame = shake_frames[i - 20]
-        # Add the car in final position
+        # 最終位置に車を追加
         draw_emoji_enhanced(frame, '🚗', position=(300, 300), size=60)
 
     builder.add_frame(frame)
@@ -625,21 +651,21 @@ for i in range(40):
 builder.save('scare.gif')
 ```
 
-## Philosophy
+## 哲学
 
-This toolkit provides building blocks, not rigid recipes. To work with a GIF request:
+このツールキットはビルディングブロックを提供し、硬直したレシピではありません。GIF リクエストに取り組むには：
 
-1. **Understand the creative vision** - What should happen? What's the mood?
-2. **Design the animation** - Break it into phases (anticipation, action, reaction)
-3. **Apply primitives as needed** - Shake, bounce, move, effects - mix freely
-4. **Validate constraints** - Check file size, especially for emoji GIFs
-5. **Iterate if needed** - Reduce frames/colors if over size limits
+1. **クリエイティブビジョンを理解する** - 何が起こるべきか？雰囲気は？
+2. **アニメーションを設計する** - フェーズに分割（予備動作、アクション、リアクション）
+3. **必要に応じてプリミティブを適用する** - シェイク、バウンス、移動、エフェクト - 自由に組み合わせ
+4. **制約を検証する** - ファイルサイズをチェック、特に絵文字 GIF の場合
+5. **必要に応じて反復する** - サイズ制限を超える場合はフレーム/色を減らす
 
-**The goal is creative freedom within Slack's technical constraints.**
+**目標は Slack の技術的制約内でのクリエイティブの自由です。**
 
-## Dependencies
+## 依存関係
 
-To use this toolkit, install these dependencies only if they aren't already present:
+このツールキットを使用するには、まだインストールされていない場合のみ以下の依存関係をインストールしてください：
 
 ```bash
 pip install pillow imageio numpy

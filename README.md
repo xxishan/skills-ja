@@ -1,123 +1,136 @@
-# Skills
-Skills are folders of instructions, scripts, and resources that Claude loads dynamically to improve performance on specialized tasks. Skills teach Claude how to complete specific tasks in a repeatable way, whether that's creating documents with your company's brand guidelines, analyzing data using your organization's specific workflows, or automating personal tasks.
+# スキル
 
-For more information, check out:
-- [What are skills?](https://support.claude.com/en/articles/12512176-what-are-skills)
-- [Using skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude)
-- [How to create custom skills](https://support.claude.com/en/articles/12512198-creating-custom-skills)
-- [Equipping agents for the real world with Agent Skills](https://anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+スキルは、Claude が専門的なタスクのパフォーマンスを向上させるために動的に読み込む、指示、スクリプト、リソースを含むフォルダです。スキルは、会社のブランドガイドラインに沿った文書の作成、組織固有のワークフローを使用したデータ分析、個人的なタスクの自動化など、特定のタスクを再現可能な方法で完了する方法を Claude に教えます。
 
-# About This Repository
+詳細については、以下をご覧ください：
 
-This repository contains example skills that demonstrate what's possible with Claude's skills system. These examples range from creative applications (art, music, design) to technical tasks (testing web apps, MCP server generation) to enterprise workflows (communications, branding, etc.).
+- [スキルとは？](https://support.claude.com/en/articles/12512176-what-are-skills)
+- [Claude でスキルを使用する](https://support.claude.com/en/articles/12512180-using-skills-in-claude)
+- [カスタムスキルの作成方法](https://support.claude.com/en/articles/12512198-creating-custom-skills)
+- [エージェントスキルで実世界に対応したエージェントを構築](https://anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
 
-Each skill is self-contained in its own directory with a `SKILL.md` file containing the instructions and metadata that Claude uses. Browse through these examples to get inspiration for your own skills or to understand different patterns and approaches.
+# このリポジトリについて
 
-The example skills in this repo are open source (Apache 2.0). We've also included the document creation & editing skills that power [Claude's document capabilities](https://www.anthropic.com/news/create-files) under the hood in the [`document-skills/`](./document-skills/) folder. These are source-available, not open source, but we wanted to share these with developers as a reference for more complex skills that are actively used in a production AI application.
+このリポジトリには、Claude のスキルシステムで可能なことを示すサンプルスキルが含まれています。これらの例は、クリエイティブなアプリケーション（アート、音楽、デザイン）から技術的なタスク（Web アプリのテスト、MCP サーバー生成）、エンタープライズワークフロー（コミュニケーション、ブランディングなど）まで多岐にわたります。
 
-**Note:** These are reference examples for inspiration and learning. They showcase general-purpose capabilities rather than organization-specific workflows or sensitive content.
+各スキルは、Claude が使用する指示とメタデータを含む`SKILL.md`ファイルを持つ独立したディレクトリに格納されています。これらの例を参照して、独自のスキルのインスピレーションを得たり、さまざまなパターンやアプローチを理解したりできます。
 
-## Disclaimer
+このリポジトリのサンプルスキルはオープンソース（Apache 2.0）です。また、[Claude の文書機能](https://www.anthropic.com/news/create-files)の基盤となっている文書作成・編集スキルを[`document-skills/`](./document-skills/)フォルダに含めています。これらはソース公開であり、オープンソースではありませんが、本番環境の AI アプリケーションで実際に使用されているより複雑なスキルの参考として開発者と共有したいと考えました。
 
-**These skills are provided for demonstration and educational purposes only.** While some of these capabilities may be available in Claude, the implementations and behaviors you receive from Claude may differ from what is shown in these examples. These examples are meant to illustrate patterns and possibilities. Always test skills thoroughly in your own environment before relying on them for critical tasks.
+**注意：** これらは学習とインスピレーションのための参考例です。組織固有のワークフローや機密コンテンツではなく、汎用的な機能を示しています。
 
-# Example Skills
+## 免責事項
 
-This repository includes a diverse collection of example skills demonstrating different capabilities:
+**これらのスキルはデモンストレーションと教育目的のみで提供されています。** これらの機能の一部は Claude で利用できる場合がありますが、Claude から受け取る実装と動作は、これらの例で示されているものとは異なる場合があります。これらの例は、パターンと可能性を示すことを目的としています。重要なタスクに依存する前に、必ず自分の環境でスキルを十分にテストしてください。
 
-## Creative & Design
-- **algorithmic-art** - Create generative art using p5.js with seeded randomness, flow fields, and particle systems
-- **canvas-design** - Design beautiful visual art in .png and .pdf formats using design philosophies
-- **slack-gif-creator** - Create animated GIFs optimized for Slack's size constraints
+# サンプルスキル
 
-## Development & Technical
-- **artifacts-builder** - Build complex claude.ai HTML artifacts using React, Tailwind CSS, and shadcn/ui components
-- **mcp-server** - Guide for creating high-quality MCP servers to integrate external APIs and services
-- **webapp-testing** - Test local web applications using Playwright for UI verification and debugging
+このリポジトリには、さまざまな機能を示す多様なサンプルスキルのコレクションが含まれています：
 
-## Enterprise & Communication
-- **brand-guidelines** - Apply Anthropic's official brand colors and typography to artifacts
-- **internal-comms** - Write internal communications like status reports, newsletters, and FAQs
-- **theme-factory** - Style artifacts with 10 pre-set professional themes or generate custom themes on-the-fly
+## クリエイティブ & デザイン
 
-## Meta Skills
-- **skill-creator** - Guide for creating effective skills that extend Claude's capabilities
-- **template-skill** - A basic template to use as a starting point for new skills
+- **algorithmic-art** - シード付きランダム性、フローフィールド、パーティクルシステムを使用して p5.js でジェネラティブアートを作成
+- **canvas-design** - デザイン哲学を使用して、.png および.pdf 形式の美しいビジュアルアートをデザイン
+- **slack-gif-creator** - Slack のサイズ制約に最適化されたアニメーション GIF を作成
 
-# Document Skills
+## 開発 & 技術
 
-The `document-skills/` subdirectory contains skills that Anthropic developed to help Claude create various document file formats. These skills demonstrate advanced patterns for working with complex file formats and binary data:
+- **artifacts-builder** - React、Tailwind CSS、shadcn/ui コンポーネントを使用して複雑な claude.ai HTML アーティファクトを構築
+- **mcp-server** - 外部 API やサービスを統合する高品質な MCP サーバーを作成するためのガイド
+- **webapp-testing** - Playwright を使用してローカル Web アプリケーションをテストし、UI の検証とデバッグを実行
 
-- **docx** - Create, edit, and analyze Word documents with support for tracked changes, comments, formatting preservation, and text extraction
-- **pdf** - Comprehensive PDF manipulation toolkit for extracting text and tables, creating new PDFs, merging/splitting documents, and handling forms
-- **pptx** - Create, edit, and analyze PowerPoint presentations with support for layouts, templates, charts, and automated slide generation
-- **xlsx** - Create, edit, and analyze Excel spreadsheets with support for formulas, formatting, data analysis, and visualization
+## エンタープライズ & コミュニケーション
 
-**Important Disclaimer:** These document skills are point-in-time snapshots and are not actively maintained or updated. Versions of these skills ship pre-included with Claude. They are primarily intended as reference examples to illustrate how Anthropic approaches developing more complex skills that work with binary file formats and document structures.
+- **brand-guidelines** - Anthropic の公式ブランドカラーとタイポグラフィをアーティファクトに適用
+- **internal-comms** - ステータスレポート、ニュースレター、FAQ などの社内コミュニケーションを作成
+- **theme-factory** - 10 のプリセットされたプロフェッショナルテーマでアーティファクトをスタイリングするか、カスタムテーマをその場で生成
 
-# Try in Claude Code, Claude.ai, and the API
+## メタスキル
+
+- **skill-creator** - Claude の機能を拡張する効果的なスキルを作成するためのガイド
+- **template-skill** - 新しいスキルの出発点として使用する基本的なテンプレート
+
+# ドキュメントスキル
+
+`document-skills/`サブディレクトリには、Claude がさまざまなドキュメントファイル形式を作成できるようにするために Anthropic が開発したスキルが含まれています。これらのスキルは、複雑なファイル形式やバイナリデータを扱うための高度なパターンを示しています：
+
+- **docx** - 変更履歴、コメント、書式保持、テキスト抽出をサポートした Word 文書の作成、編集、分析
+- **pdf** - テキストとテーブルの抽出、新規 PDF 作成、文書の結合/分割、フォーム処理を行う包括的な PDF 操作ツールキット
+- **pptx** - レイアウト、テンプレート、グラフ、自動スライド生成をサポートした PowerPoint プレゼンテーションの作成、編集、分析
+- **xlsx** - 数式、書式設定、データ分析、可視化をサポートした Excel スプレッドシートの作成、編集、分析
+
+**重要な免責事項：** これらのドキュメントスキルはある時点のスナップショットであり、積極的に保守または更新されていません。これらのスキルのバージョンは Claude に事前に含まれています。これらは主に、バイナリファイル形式や文書構造を扱うより複雑なスキルの開発に Anthropic がどのようにアプローチしているかを示す参考例として意図されています。
+
+# Claude Code、Claude.ai、API で試す
 
 ## Claude Code
-You can register this repository as a Claude Code Plugin marketplace by running the following command in Claude Code:
+
+このリポジトリを Claude Code プラグインマーケットプレイスとして Claude Code で以下のコマンドを実行して登録できます：
+
 ```
 /plugin marketplace add anthropics/skills
 ```
 
-Then, to install a specific set of skills:
-1. Select `Browse and install plugins`
-2. Select `anthropic-agent-skills`
-3. Select `document-skills` or `example-skills`
-4. Select `Install now`
+次に、特定のスキルセットをインストールするには：
 
-Alternatively, directly install either Plugin via:
+1. `Browse and install plugins`を選択
+2. `anthropic-agent-skills`を選択
+3. `document-skills`または`example-skills`を選択
+4. `Install now`を選択
+
+または、以下のコマンドでプラグインを直接インストールできます：
+
 ```
 /plugin install document-skills@anthropic-agent-skills
 /plugin install example-skills@anthropic-agent-skills
 ```
 
-After installing the plugin, you can use the skill by just mentioning it. For instance, if you install the `document-skills` plugin from the marketplace, you can ask Claude Code to do something like: "Use the PDF skill to extract the form fields from path/to/some-file.pdf"
+プラグインをインストールした後、言及するだけでスキルを使用できます。たとえば、マーケットプレイスから`document-skills`プラグインをインストールした場合、Claude Code に次のように依頼できます：「PDF スキルを使用して、path/to/some-file.pdf からフォームフィールドを抽出してください」
 
 ## Claude.ai
 
-These example skills are all already available to paid plans in Claude.ai. 
+これらのサンプルスキルはすべて、Claude.ai の有料プランですでに利用可能です。
 
-To use any skill from this repository or upload custom skills, follow the instructions in [Using skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude#h_a4222fa77b).
+このリポジトリの任意のスキルを使用したり、カスタムスキルをアップロードしたりするには、[Claude でスキルを使用する](https://support.claude.com/en/articles/12512180-using-skills-in-claude#h_a4222fa77b)の手順に従ってください。
 
 ## Claude API
 
-You can use Anthropic's pre-built skills, and upload custom skills, via the Claude API. See the [Skills API Quickstart](https://docs.claude.com/en/api/skills-guide#creating-a-skill) for more.
+Claude API を介して、Anthropic の事前構築されたスキルを使用したり、カスタムスキルをアップロードしたりできます。詳細については、[スキル API クイックスタート](https://docs.claude.com/en/api/skills-guide#creating-a-skill)を参照してください。
 
-# Creating a Basic Skill
+# 基本的なスキルの作成
 
-Skills are simple to create - just a folder with a `SKILL.md` file containing YAML frontmatter and instructions. You can use the **template-skill** in this repository as a starting point:
+スキルの作成は簡単です - YAML フロントマターと指示を含む`SKILL.md`ファイルがあるフォルダだけです。このリポジトリの**template-skill**を出発点として使用できます：
 
 ```markdown
 ---
 name: my-skill-name
-description: A clear description of what this skill does and when to use it
+description: このスキルが何をするのか、いつ使用するのかを明確に説明
 ---
 
 # My Skill Name
 
-[Add your instructions here that Claude will follow when this skill is active]
+[このスキルがアクティブなときに Claude が従う指示をここに追加]
 
-## Examples
-- Example usage 1
-- Example usage 2
+## 例
 
-## Guidelines
-- Guideline 1
-- Guideline 2
+- 使用例 1
+- 使用例 2
+
+## ガイドライン
+
+- ガイドライン 1
+- ガイドライン 2
 ```
 
-The frontmatter requires only two fields:
-- `name` - A unique identifier for your skill (lowercase, hyphens for spaces)
-- `description` - A complete description of what the skill does and when to use it
+フロントマターには 2 つのフィールドのみが必要です：
 
-The markdown content below contains the instructions, examples, and guidelines that Claude will follow. For more details, see [How to create custom skills](https://support.claude.com/en/articles/12512198-creating-custom-skills).
+- `name` - スキルの一意の識別子（小文字、スペースにはハイフン）
+- `description` - スキルが何をするのか、いつ使用するのかの完全な説明
 
-# Partner Skills
+以下のマークダウンコンテンツには、Claude が従う指示、例、ガイドラインが含まれます。詳細については、[カスタムスキルの作成方法](https://support.claude.com/en/articles/12512198-creating-custom-skills)を参照してください。
 
-Skills are a great way to teach Claude how to get better at using specific pieces of software. As we see awesome example skills from partners, we may highlight some of them here:
+# パートナースキル
+
+スキルは、特定のソフトウェアの使用方法を Claude に教える優れた方法です。パートナーから素晴らしいサンプルスキルが提供された場合、ここでそれらのいくつかを紹介する可能性があります：
 
 - **Notion** - [Notion Skills for Claude](https://www.notion.so/notiondevs/Notion-Skills-for-Claude-28da4445d27180c7af1df7d8615723d0)

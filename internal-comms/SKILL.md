@@ -1,32 +1,35 @@
 ---
 name: internal-comms
-description: A set of resources to help me write all kinds of internal communications, using the formats that my company likes to use. Claude should use this skill whenever asked to write some sort of internal communications (status reports, leadership updates, 3P updates, company newsletters, FAQs, incident reports, project updates, etc.).
-license: Complete terms in LICENSE.txt
+description: 社内コミュニケーションを作成するためのリソース集です。会社で使用される形式を使って、あらゆる種類の社内コミュニケーションを書くのに役立ちます。Claudeは、社内コミュニケーション(ステータスレポート、リーダーシップ向け報告、3P更新、社内ニュースレター、FAQ、インシデントレポート、プロジェクト更新など)の作成を依頼された際に、このスキルを使用します。
+license: 詳細はLICENSE.txtを参照
 ---
 
-## When to use this skill
-To write internal communications, use this skill for:
-- 3P updates (Progress, Plans, Problems)
-- Company newsletters
-- FAQ responses
-- Status reports
-- Leadership updates
-- Project updates
-- Incident reports
+## このスキルを使用するタイミング
 
-## How to use this skill
+社内コミュニケーションを作成する際、このスキルは以下に使用します:
 
-To write any internal communication:
+- 3P 更新(Progress、Plans、Problems)
+- 社内ニュースレター
+- FAQ への回答
+- ステータスレポート
+- リーダーシップ向け報告
+- プロジェクト更新
+- インシデントレポート
 
-1. **Identify the communication type** from the request
-2. **Load the appropriate guideline file** from the `examples/` directory:
-    - `examples/3p-updates.md` - For Progress/Plans/Problems team updates
-    - `examples/company-newsletter.md` - For company-wide newsletters
-    - `examples/faq-answers.md` - For answering frequently asked questions
-    - `examples/general-comms.md` - For anything else that doesn't explicitly match one of the above
-3. **Follow the specific instructions** in that file for formatting, tone, and content gathering
+## このスキルの使い方
 
-If the communication type doesn't match any existing guideline, ask for clarification or more context about the desired format.
+社内コミュニケーションを作成する場合:
 
-## Keywords
-3P updates, company newsletter, company comms, weekly update, faqs, common questions, updates, internal comms
+1. **リクエストからコミュニケーションの種類を特定**する
+2. **`examples/`ディレクトリから適切なガイドラインファイルを読み込む**:
+   - `examples/3p-updates.md` - Progress/Plans/Problems チーム更新用
+   - `examples/company-newsletter.md` - 社内ニュースレター用
+   - `examples/faq-answers.md` - よくある質問への回答用
+   - `examples/general-comms.md` - 上記のいずれにも明確に該当しないその他のコミュニケーション用
+3. **そのファイル内の具体的な指示に従って**、フォーマット、トーン、コンテンツの収集を行う
+
+コミュニケーションの種類が既存のガイドラインに該当しない場合は、希望する形式について明確化や詳細なコンテキストを求めてください。
+
+## キーワード
+
+3P 更新、社内ニュースレター、社内コミュニケーション、週次報告、FAQ、よくある質問、更新、社内連絡

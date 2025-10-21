@@ -1,47 +1,48 @@
-## Instructions
-You are being asked to write a 3P update. 3P updates stand for "Progress, Plans, Problems." The main audience is for executives, leadership, other teammates, etc. They're meant to be very succinct and to-the-point: think something you can read in 30-60sec or less. They're also for people with some, but not a lot of context on what the team does.
+## 指示
 
-3Ps can cover a team of any size, ranging all the way up to the entire company. The bigger the team, the less granular the tasks should be. For example, "mobile team" might have "shipped feature" or "fixed bugs," whereas the company might have really meaty 3Ps, like "hired 20 new people" or "closed 10 new deals." 
+3P 更新を作成するよう依頼されています。3P は「Progress(進捗)、Plans(計画)、Problems(課題)」の略です。主な対象者は経営幹部、リーダーシップ、他のチームメンバーなどです。非常に簡潔で要点を押さえたものである必要があります:30〜60 秒以内で読めるものを想定してください。また、チームの活動についてある程度の知識はあるものの、詳細までは知らない人向けです。
 
-They represent the work of the team across a time period, almost always one week. They include three sections:
-1) Progress: what the team has accomplished over the next time period. Focus mainly on things shipped, milestones achieved, tasks created, etc.
-2) Plans: what the team plans to do over the next time period. Focus on what things are top-of-mind, really high priority, etc. for the team.
-3) Problems: anything that is slowing the team down. This could be things like too few people, bugs or blockers that are preventing the team from moving forward, some deal that fell through, etc.
+3P はあらゆる規模のチームをカバーでき、会社全体まで範囲が広がります。チームが大きいほど、タスクの粒度は粗くなるべきです。例えば、「モバイルチーム」なら「機能をリリース」や「バグを修正」といった内容になりますが、会社全体なら「新規 20 名を採用」や「10 件の新規契約を締結」といったより重要な 3P になります。
 
-Before writing them, make sure that you know the team name. If it's not specified, you can ask explicitly what the team name you're writing for is.
+3P は一定期間(ほとんどの場合 1 週間)のチームの活動を表します。以下の 3 つのセクションで構成されます:
 
+1. Progress(進捗): 次の期間にチームが達成したこと。主にリリースしたもの、達成したマイルストーン、作成したタスクなどに焦点を当てます。
+2. Plans(計画): 次の期間にチームが計画していること。チームにとって最優先の、本当に重要なことに焦点を当てます。
+3. Problems(課題): チームの足を引っ張っているもの。人員不足、チームの前進を妨げているバグやブロッカー、破談になった取引などが該当します。
 
-## Tools Available
-Whenever possible, try to pull from available sources to get the information you need:
-- Slack: posts from team members with their updates - ideally look for posts in large channels with lots of reactions
-- Google Drive: docs written from critical team members with lots of views
-- Email: emails with lots of responses of lots of content that seems relevant
-- Calendar: non-recurring meetings that have a lot of importance, like product reviews, etc.
+作成する前に、チーム名を把握していることを確認してください。指定されていない場合は、どのチーム名で作成するのか明示的に尋ねることができます。
 
+## 利用可能なツール
 
-Try to gather as much context as you can, focusing on the things that covered the time period you're writing for:
-- Progress: anything between a week ago and today
-- Plans: anything from today to the next week
-- Problems: anything between a week ago and today
+可能な限り、利用可能なソースから必要な情報を引き出してください:
 
+- Slack: チームメンバーからの更新投稿 - 理想的には大きなチャンネルで多くのリアクションがついた投稿を探します
+- Google Drive: 重要なチームメンバーが書いた、多くの閲覧数があるドキュメント
+- Email: 多くの返信があるメール、または関連性が高そうな内容のメール
+- Calendar: 製品レビューなど、重要性の高い非定期的な会議
 
-If you don't have access, you can ask the user for things they want to cover. They might also include these things to you directly, in which case you're mostly just formatting for this particular format.
+書いている期間に該当するものに焦点を当てて、できるだけ多くのコンテキストを収集してください:
 
-## Workflow
+- Progress(進捗): 1 週間前から今日までの間のもの
+- Plans(計画): 今日から次の 1 週間までのもの
+- Problems(課題): 1 週間前から今日までの間のもの
 
-1. **Clarify scope**: Confirm the team name and time period (usually past week for Progress/Problems, next
-week for Plans)
-2. **Gather information**: Use available tools or ask the user directly
-3. **Draft the update**: Follow the strict formatting guidelines
-4. **Review**: Ensure it's concise (30-60 seconds to read) and data-driven
+アクセスできない場合は、カバーしたい内容をユーザーに尋ねることができます。ユーザーが直接これらの情報を提供してくれる場合もあります。その場合は、主にこの特定の形式に合わせてフォーマットするだけです。
 
-## Formatting
+## ワークフロー
 
-The format is always the same, very strict formatting. Never use any formatting other than this. Pick an emoji that is fun and captures the vibe of the team and update.
+1. **スコープの明確化**: チーム名と期間を確認(通常、Progress/Problems は過去 1 週間、Plans は次の 1 週間)
+2. **情報収集**: 利用可能なツールを使用するか、ユーザーに直接尋ねる
+3. **更新の下書き**: 厳密なフォーマットガイドラインに従う
+4. **レビュー**: 簡潔(30〜60 秒で読める)かつデータに基づいた内容であることを確認
 
-[pick an emoji] [Team Name] (Dates Covered, usually a week)
-Progress: [1-3 sentences of content]
-Plans: [1-3 sentences of content]
-Problems: [1-3 sentences of content]
+## フォーマット
 
-Each section should be no more than 1-3 sentences: clear, to the point. It should be data-driven, and generally include metrics where possible. The tone should be very matter-of-fact, not super prose-heavy.
+形式は常に同じで、非常に厳格なフォーマットです。これ以外のフォーマットは絶対に使用しないでください。チームと更新の雰囲気を捉えた楽しい絵文字を選んでください。
+
+[絵文字を選択] [チーム名] (対象期間、通常は 1 週間)
+Progress: [1〜3 文の内容]
+Plans: [1〜3 文の内容]
+Problems: [1〜3 文の内容]
+
+各セクションは 1〜3 文以内にする必要があります:明確で要点を押さえたものにしてください。データに基づいた内容にし、可能な限り指標を含めるようにしてください。トーンは非常に事実的で、散文的すぎないようにしてください。

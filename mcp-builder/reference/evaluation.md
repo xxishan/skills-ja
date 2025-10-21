@@ -1,355 +1,793 @@
-# MCP Server Evaluation Guide
+# MCP サーバー評価ガイド
 
-## Overview
+## 概要
 
-This document provides guidance on creating comprehensive evaluations for MCP servers. Evaluations test whether LLMs can effectively use your MCP server to answer realistic, complex questions using only the tools provided.
+このドキュメントは、MCP サーバーの包括的な評価を作成するためのガイダンスを提供します。評価は、LLM が提供されたツールのみを使用して、現実的で複雑な質問に効果的に答えるために MCP サーバーを使用できるかをテストします。
 
 ---
 
-## Quick Reference
+## クイックリファレンス
 
-### Evaluation Requirements
-- Create 10 human-readable questions
-- Questions must be READ-ONLY, INDEPENDENT, NON-DESTRUCTIVE
-- Each question requires multiple tool calls (potentially dozens)
-- Answers must be single, verifiable values
-- Answers must be STABLE (won't change over time)
+### 評価要件
 
-### Output Format
+- 10 個の人間が読める質問を作成
+- 質問は読み取り専用、独立、非破壊的でなければならない
+- 各質問は複数のツール呼び出し（潜在的に数十回）を必要とする
+- 回答は単一の検証可能な値でなければならない
+- 回答は安定している必要がある（時間とともに変化しない）
+
+### 出力フォーマット
+
 ```xml
 <evaluation>
    <qa_pair>
-      <question>Your question here</question>
-      <answer>Single verifiable answer</answer>
+      <question>ここに質問</question>
+      <answer>単一の検証可能な回答</answer>
    </qa_pair>
 </evaluation>
 ```
 
 ---
 
-## Purpose of Evaluations
+## 評価の目的
 
-The measure of quality of an MCP server is NOT how well or comprehensively the server implements tools, but how well these implementations (input/output schemas, docstrings/descriptions, functionality) enable LLMs with no other context and access ONLY to the MCP servers to answer realistic and difficult questions.
+MCP サーバーの品質の尺度は、サーバーがツールをどれだけうまく包括的に実装しているかではなく、これらの実装（入出力スキーマ、docstring/説明、機能）が、他のコンテキストなしで MCP サーバーのみにアクセスできる LLM が現実的で困難な質問に答えることをどれだけうまく可能にするかです。
 
-## Evaluation Overview
+## 評価の概要
 
-Create 10 human-readable questions requiring ONLY READ-ONLY, INDEPENDENT, NON-DESTRUCTIVE, and IDEMPOTENT operations to answer. Each question should be:
-- Realistic
-- Clear and concise
-- Unambiguous
-- Complex, requiring potentially dozens of tool calls or steps
-- Answerable with a single, verifiable value that you identify in advance
+読み取り専用、独立、非破壊的、かつ冪等な操作のみを必要とする 10 個の人間が読める質問を作成します。各質問は以下であるべきです:
 
-## Question Guidelines
+- 現実的
+- 明確で簡潔
+- 曖昧でない
+- 複雑で、潜在的に数十のツール呼び出しまたはステップを必要とする
+- 事前に特定した単一の検証可能な値で答えられる
 
-### Core Requirements
+## 質問のガイドライン
 
-1. **Questions MUST be independent**
-   - Each question should NOT depend on the answer to any other question
-   - Should not assume prior write operations from processing another question
+### コア要件
 
-2. **Questions MUST require ONLY NON-DESTRUCTIVE AND IDEMPOTENT tool use**
-   - Should not instruct or require modifying state to arrive at the correct answer
+1. **質問は独立していなければならない**
 
-3. **Questions must be REALISTIC, CLEAR, CONCISE, and COMPLEX**
-   - Must require another LLM to use multiple (potentially dozens of) tools or steps to answer
+   - 各質問は他の質問の回答に依存してはならない
+   - 別の質問を処理することによる事前の書き込み操作を想定してはならない
 
-### Complexity and Depth
+2. **質問は非破壊的かつ冪等なツール使用のみを必要としなければならない**
 
-4. **Questions must require deep exploration**
-   - Consider multi-hop questions requiring multiple sub-questions and sequential tool calls
-   - Each step should benefit from information found in previous questions
+   - 正しい回答に到達するために状態を変更することを指示または要求してはならない
 
-5. **Questions may require extensive paging**
-   - May need paging through multiple pages of results
-   - May require querying old data (1-2 years out-of-date) to find niche information
-   - The questions must be DIFFICULT
+3. **質問は現実的、明確、簡潔、かつ複雑でなければならない**
+   - 別の LLM が答えるために複数の（潜在的に数十の）ツールまたはステップを使用する必要がある
 
-6. **Questions must require deep understanding**
-   - Rather than surface-level knowledge
-   - May pose complex ideas as True/False questions requiring evidence
-   - May use multiple-choice format where LLM must search different hypotheses
+### 複雑さと深さ
 
-7. **Questions must not be solvable with straightforward keyword search**
-   - Do not include specific keywords from the target content
-   - Use synonyms, related concepts, or paraphrases
-   - Require multiple searches, analyzing multiple related items, extracting context, then deriving the answer
+4. **質問は深い探索を必要としなければならない**
 
-### Tool Testing
+   - 複数のサブ質問と連続したツール呼び出しを必要とするマルチホップ質問を検討する
+   - 各ステップは前の質問で見つかった情報から利益を得るべき
 
-8. **Questions should stress-test tool return values**
-   - May elicit tools returning large JSON objects or lists, overwhelming the LLM
-   - Should require understanding multiple modalities of data:
-     - IDs and names
-     - Timestamps and datetimes (months, days, years, seconds)
-     - File IDs, names, extensions, and mimetypes
-     - URLs, GIDs, etc.
-   - Should probe the tool's ability to return all useful forms of data
+5. **質問は広範なページングを必要とする場合がある**
 
-9. **Questions should MOSTLY reflect real human use cases**
-   - The kinds of information retrieval tasks that HUMANS assisted by an LLM would care about
+   - 結果の複数ページをページングする必要がある場合がある
+   - ニッチな情報を見つけるために古いデータ（1〜2 年前）をクエリする必要がある場合がある
+   - 質問は困難でなければならない
 
-10. **Questions may require dozens of tool calls**
-    - This challenges LLMs with limited context
-    - Encourages MCP server tools to reduce information returned
+6. **質問は深い理解を必要としなければならない**
 
-11. **Include ambiguous questions**
-    - May be ambiguous OR require difficult decisions on which tools to call
-    - Force the LLM to potentially make mistakes or misinterpret
-    - Ensure that despite AMBIGUITY, there is STILL A SINGLE VERIFIABLE ANSWER
+   - 表面的な知識ではなく
+   - 証拠を必要とする複雑なアイデアを真偽質問として提示する場合がある
+   - LLM が異なる仮説を検索しなければならない多肢選択形式を使用する場合がある
 
-### Stability
+7. **質問は単純なキーワード検索で解決できてはならない**
+   - ターゲットコンテンツの特定のキーワードを含めない
+   - 同義語、関連する概念、または言い換えを使用する
+   - 複数の検索、複数の関連項目の分析、コンテキストの抽出、その後回答の導出を必要とする
 
-12. **Questions must be designed so the answer DOES NOT CHANGE**
-    - Do not ask questions that rely on "current state" which is dynamic
-    - For example, do not count:
-      - Number of reactions to a post
-      - Number of replies to a thread
-      - Number of members in a channel
+### ツールテスト
 
-13. **DO NOT let the MCP server RESTRICT the kinds of questions you create**
-    - Create challenging and complex questions
-    - Some may not be solvable with the available MCP server tools
-    - Questions may require specific output formats (datetime vs. epoch time, JSON vs. MARKDOWN)
-    - Questions may require dozens of tool calls to complete
+8. **質問はツールの戻り値をストレステストするべき**
 
-## Answer Guidelines
+   - LLM を圧倒する大きな JSON オブジェクトまたはリストを返すツールを引き出す場合がある
+   - データの複数のモダリティを理解する必要があるべき:
+     - ID と名前
+     - タイムスタンプと日時（月、日、年、秒）
+     - ファイル ID、名前、拡張子、およびマイムタイプ
+     - URL、GID など
+   - ツールがすべての有用な形式のデータを返す能力を調査するべき
 
-### Verification
+9. **質問は主に実際の人間のユースケースを反映するべき**
 
-1. **Answers must be VERIFIABLE via direct string comparison**
-   - If the answer can be re-written in many formats, clearly specify the output format in the QUESTION
-   - Examples: "Use YYYY/MM/DD.", "Respond True or False.", "Answer A, B, C, or D and nothing else."
-   - Answer should be a single VERIFIABLE value such as:
-     - User ID, user name, display name, first name, last name
-     - Channel ID, channel name
-     - Message ID, string
-     - URL, title
-     - Numerical quantity
-     - Timestamp, datetime
-     - Boolean (for True/False questions)
-     - Email address, phone number
-     - File ID, file name, file extension
-     - Multiple choice answer
-   - Answers must not require special formatting or complex, structured output
-   - Answer will be verified using DIRECT STRING COMPARISON
+   - LLM の支援を受けた人間が気にするような情報検索タスクの種類
 
-### Readability
+10. **質問は数十のツール呼び出しを必要とする場合がある**
 
-2. **Answers should generally prefer HUMAN-READABLE formats**
-   - Examples: names, first name, last name, datetime, file name, message string, URL, yes/no, true/false, a/b/c/d
-   - Rather than opaque IDs (though IDs are acceptable)
-   - The VAST MAJORITY of answers should be human-readable
+    - これは限られたコンテキストを持つ LLM に挑戦する
+    - MCP サーバーツールが返される情報を減らすことを奨励する
 
-### Stability
+11. **曖昧な質問を含める**
+    - 曖昧である、またはどのツールを呼び出すかについて難しい決定を必要とする場合がある
+    - LLM が潜在的に間違いを犯したり誤解したりすることを強制する
+    - 曖昧さにもかかわらず、単一の検証可能な回答がまだ存在することを確認する
 
-3. **Answers must be STABLE/STATIONARY**
-   - Look at old content (e.g., conversations that have ended, projects that have launched, questions answered)
-   - Create QUESTIONS based on "closed" concepts that will always return the same answer
-   - Questions may ask to consider a fixed time window to insulate from non-stationary answers
-   - Rely on context UNLIKELY to change
-   - Example: if finding a paper name, be SPECIFIC enough so answer is not confused with papers published later
+### 安定性
 
-4. **Answers must be CLEAR and UNAMBIGUOUS**
-   - Questions must be designed so there is a single, clear answer
-   - Answer can be derived from using the MCP server tools
+12. **質問は回答が変化しないように設計されなければならない**
 
-### Diversity
+    - 動的な「現在の状態」に依存する質問をしない
+    - 例えば、以下をカウントしない:
+      - 投稿へのリアクションの数
+      - スレッドへの返信の数
+      - チャンネルのメンバーの数
 
-5. **Answers must be DIVERSE**
-   - Answer should be a single VERIFIABLE value in diverse modalities and formats
-   - User concept: user ID, user name, display name, first name, last name, email address, phone number
-   - Channel concept: channel ID, channel name, channel topic
-   - Message concept: message ID, message string, timestamp, month, day, year
+13. **MCP サーバーが作成する質問の種類を制限させない**
+    - 挑戦的で複雑な質問を作成する
+    - 利用可能な MCP サーバーツールでは解決できないものもある場合がある
+    - 質問は特定の出力フォーマットを必要とする場合がある（日時対エポックタイム、JSON 対 MARKDOWN）
+    - 質問は完了するために数十のツール呼び出しを必要とする場合がある
 
-6. **Answers must NOT be complex structures**
-   - Not a list of values
-   - Not a complex object
-   - Not a list of IDs or strings
-   - Not natural language text
-   - UNLESS the answer can be straightforwardly verified using DIRECT STRING COMPARISON
-   - And can be realistically reproduced
-   - It should be unlikely that an LLM would return the same list in any other order or format
+## 回答のガイドライン
 
-## Evaluation Process
+### 検証
 
-### Step 1: Documentation Inspection
+1. **回答は直接文字列比較で検証可能でなければならない**
+   - 回答が多くのフォーマットで書き直せる場合、質問で出力フォーマットを明確に指定する
+   - 例: "YYYY/MM/DD を使用してください。"、"真または偽で応答してください。"、"A、B、C、または D のみで答えてください。"
+   - 回答は以下のような単一の検証可能な値であるべき:
+     - ユーザー ID、ユーザー名、表示名、名、姓
+     - チャンネル ID、チャンネル名
+     - メッセージ ID、文字列
+     - URL、タイトル
+     - 数値
+     - タイムスタンプ、日時
+     - ブール値（真偽質問用）
+     - メールアドレス、電話番号
+     - ファイル ID、ファイル名、ファイル拡張子
+     - 多肢選択の回答
+   - 回答は特別なフォーマットや複雑で構造化された出力を必要としてはならない
+   - 回答は直接文字列比較を使用して検証される
 
-Read the documentation of the target API to understand:
-- Available endpoints and functionality
-- If ambiguity exists, fetch additional information from the web
-- Parallelize this step AS MUCH AS POSSIBLE
-- Ensure each subagent is ONLY examining documentation from the file system or on the web
+### 可読性
 
-### Step 2: Tool Inspection
+2. **回答は一般的に人間が読める形式を優先すべき**
+   - 例: 名前、名、姓、日時、ファイル名、メッセージ文字列、URL、はい/いいえ、真/偽、a/b/c/d
+   - 不透明な ID ではなく（ただし ID も許容される）
+   - 大多数の回答は人間が読めるべき
 
-List the tools available in the MCP server:
-- Inspect the MCP server directly
-- Understand input/output schemas, docstrings, and descriptions
-- WITHOUT calling the tools themselves at this stage
+### 安定性
 
-### Step 3: Developing Understanding
+3. **回答は安定/定常でなければならない**
 
-Repeat steps 1 & 2 until you have a good understanding:
-- Iterate multiple times
-- Think about the kinds of tasks you want to create
-- Refine your understanding
-- At NO stage should you READ the code of the MCP server implementation itself
-- Use your intuition and understanding to create reasonable, realistic, but VERY challenging tasks
+   - 古いコンテンツを見る（例: 終了した会話、開始されたプロジェクト、回答された質問）
+   - 常に同じ回答を返す「閉じた」概念に基づいて質問を作成する
+   - 質問は非定常な回答から隔離するために固定時間ウィンドウを考慮するよう求める場合がある
+   - 変化する可能性が低いコンテキストに依存する
+   - 例: 論文名を見つける場合、後に公開される論文と混同されないように十分に具体的にする
 
-### Step 4: Read-Only Content Inspection
+4. **回答は明確で曖昧でなければならない**
+   - 質問は単一の明確な回答が存在するように設計されなければならない
+   - 回答は MCP サーバーツールを使用して導出できる
 
-After understanding the API and tools, USE the MCP server tools:
-- Inspect content using READ-ONLY and NON-DESTRUCTIVE operations ONLY
-- Goal: identify specific content (e.g., users, channels, messages, projects, tasks) for creating realistic questions
-- Should NOT call any tools that modify state
-- Will NOT read the code of the MCP server implementation itself
-- Parallelize this step with individual sub-agents pursuing independent explorations
-- Ensure each subagent is only performing READ-ONLY, NON-DESTRUCTIVE, and IDEMPOTENT operations
-- BE CAREFUL: SOME TOOLS may return LOTS OF DATA which would cause you to run out of CONTEXT
-- Make INCREMENTAL, SMALL, AND TARGETED tool calls for exploration
-- In all tool call requests, use the `limit` parameter to limit results (<10)
-- Use pagination
+### 多様性
 
-### Step 5: Task Generation
+5. **回答は多様でなければならない**
 
-After inspecting the content, create 10 human-readable questions:
-- An LLM should be able to answer these with the MCP server
-- Follow all question and answer guidelines above
+   - 回答は多様なモダリティとフォーマットの単一の検証可能な値であるべき
+   - ユーザー概念: ユーザー ID、ユーザー名、表示名、名、姓、メールアドレス、電話番号
+   - チャンネル概念: チャンネル ID、チャンネル名、チャンネルトピック
+   - メッセージ概念: メッセージ ID、メッセージ文字列、タイムスタンプ、月、日、年
 
-## Output Format
+6. **回答は複雑な構造であってはならない**
+   - 値のリストではない
+   - 複雑なオブジェクトではない
+   - ID や文字列のリストではない
+   - 自然言語テキストではない
+   - 直接文字列比較を使用して直接検証できる場合を除く
+   - そして現実的に再現できる
+   - LLM が同じリストを他の順序やフォーマットで返す可能性は低いべき
 
-Each QA pair consists of a question and an answer. The output should be an XML file with this structure:
+## 評価プロセス
+
+### ステップ 1: ドキュメント検査
+
+ターゲット API のドキュメントを読んで理解する:
+
+- 利用可能なエンドポイントと機能
+- 曖昧さが存在する場合、Web から追加情報を取得
+- このステップを可能な限り並列化する
+- 各サブエージェントがファイルシステムまたは Web 上のドキュメントのみを検査していることを確認
+
+### ステップ 2: ツール検査
+
+MCP サーバーで利用可能なツールをリストアップ:
+
+- MCP サーバーを直接検査
+- 入出力スキーマ、docstring、説明を理解
+- この段階ではツール自体を呼び出さない
+
+### ステップ 3: 理解の発展
+
+十分な理解が得られるまでステップ 1 と 2 を繰り返す:
+
+- 複数回反復する
+- 作成したいタスクの種類について考える
+- 理解を深める
+- いかなる段階でも MCP サーバー実装自体のコードを読んではならない
+- 直感と理解を使って、合理的で現実的だが非常に挑戦的なタスクを作成
+
+### ステップ 4: 読み取り専用コンテンツ検査
+
+API とツールを理解した後、MCP サーバーツールを使用する:
+
+- 読み取り専用および非破壊的な操作のみを使用してコンテンツを検査
+- 目標: 現実的な質問を作成するための特定のコンテンツ（例: ユーザー、チャンネル、メッセージ、プロジェクト、タスク）を識別する
+- 状態を変更するツールを呼び出してはならない
+- MCP サーバー実装のコードを読まない
+- 独立した探索を追求する個々のサブエージェントでこのステップを並列化
+- 各サブエージェントが読み取り専用、非破壊的、冪等な操作のみを実行していることを確認
+- 注意: 一部のツールは大量のデータを返し、コンテキストが不足する可能性がある
+- 探索のために段階的、小規模、ターゲット化されたツール呼び出しを行う
+- すべてのツール呼び出しリクエストで、`limit`パラメータを使用して結果を制限する（<10）
+- ページネーションを使用
+
+### ステップ 5: タスク生成
+
+コンテンツを検査した後、10 個の人間が読める質問を作成する:
+
+- LLM が MCP サーバーでこれらに答えられるべき
+- 上記のすべての質問と回答のガイドラインに従う
+
+## 出力フォーマット
+
+各 QA ペアは質問と回答で構成されます。出力は以下の構造を持つ XML ファイルであるべきです:
 
 ```xml
 <evaluation>
    <qa_pair>
-      <question>Find the project created in Q2 2024 with the highest number of completed tasks. What is the project name?</question>
+      <question>2024年Q2に作成され、完了したタスクの数が最も多いプロジェクトを見つけてください。プロジェクト名は何ですか？</question>
       <answer>Website Redesign</answer>
    </qa_pair>
    <qa_pair>
-      <question>Search for issues labeled as "bug" that were closed in March 2024. Which user closed the most issues? Provide their username.</question>
+      <question>「バグ」とラベル付けされ、2024年3月にクローズされた問題を検索してください。最も多くの問題をクローズしたユーザーは誰ですか？ユーザー名を提供してください。</question>
       <answer>sarah_dev</answer>
    </qa_pair>
    <qa_pair>
-      <question>Look for pull requests that modified files in the /api directory and were merged between January 1 and January 31, 2024. How many different contributors worked on these PRs?</question>
+      <question>/apiディレクトリのファイルを変更し、2024年1月1日から1月31日の間にマージされたプルリクエストを探してください。これらのPRに取り組んだ異なるコントリビューターは何人いましたか？</question>
       <answer>7</answer>
    </qa_pair>
    <qa_pair>
-      <question>Find the repository with the most stars that was created before 2023. What is the repository name?</question>
+      <question>2023年より前に作成され、最も多くのスターを持つリポジトリを見つけてください。リポジトリ名は何ですか？</question>
       <answer>data-pipeline</answer>
    </qa_pair>
 </evaluation>
 ```
 
-## Evaluation Examples
+## 評価の例
 
-### Good Questions
+### 良い質問
 
-**Example 1: Multi-hop question requiring deep exploration (GitHub MCP)**
+**例 1: 深い探索を必要とするマルチホップ質問（GitHub MCP）**
+
 ```xml
 <qa_pair>
-   <question>Find the repository that was archived in Q3 2023 and had previously been the most forked project in the organization. What was the primary programming language used in that repository?</question>
+   <question>2023年Q3にアーカイブされ、以前は組織内で最もフォークされたプロジェクトだったリポジトリを見つけてください。そのリポジトリで使用されていた主要なプログラミング言語は何でしたか？</question>
    <answer>Python</answer>
 </qa_pair>
 ```
 
-This question is good because:
-- Requires multiple searches to find archived repositories
-- Needs to identify which had the most forks before archival
-- Requires examining repository details for the language
-- Answer is a simple, verifiable value
-- Based on historical (closed) data that won't change
+この質問が良い理由:
 
-**Example 2: Requires understanding context without keyword matching (Project Management MCP)**
+- アーカイブされたリポジトリを見つけるために複数の検索が必要
+- アーカイブ前に最も多くフォークされたものを識別する必要がある
+- 言語のためにリポジトリの詳細を調べる必要がある
+- 回答はシンプルで検証可能な値
+- 変化しない過去の（クローズされた）データに基づいている
+
+**例 2: キーワードマッチングなしでコンテキストの理解が必要（プロジェクト管理 MCP）**
+
 ```xml
 <qa_pair>
-   <question>Locate the initiative focused on improving customer onboarding that was completed in late 2023. The project lead created a retrospective document after completion. What was the lead's role title at that time?</question>
+   <question>2023年後半に完了した顧客オンボーディングの改善に焦点を当てたイニシアチブを見つけてください。プロジェクトリーダーは完了後に振り返りドキュメントを作成しました。その時点でのリーダーの役職は何でしたか？</question>
    <answer>Product Manager</answer>
 </qa_pair>
 ```
 
-This question is good because:
-- Doesn't use specific project name ("initiative focused on improving customer onboarding")
-- Requires finding completed projects from specific timeframe
-- Needs to identify the project lead and their role
-- Requires understanding context from retrospective documents
-- Answer is human-readable and stable
-- Based on completed work (won't change)
+この質問が良い理由:
 
-**Example 3: Complex aggregation requiring multiple steps (Issue Tracker MCP)**
+- 特定のプロジェクト名を使用していない（「顧客オンボーディングの改善に焦点を当てたイニシアチブ」）
+- 特定の時間枠から完了したプロジェクトを見つける必要がある
+- プロジェクトリーダーとその役割を識別する必要がある
+- 振り返りドキュメントからのコンテキストの理解が必要
+- 回答は人間が読めて安定している
+- 完了した作業に基づいている（変化しない）
+
+**例 3: 複数のステップを必要とする複雑な集約（問題トラッカー MCP）**
+
 ```xml
 <qa_pair>
-   <question>Among all bugs reported in January 2024 that were marked as critical priority, which assignee resolved the highest percentage of their assigned bugs within 48 hours? Provide the assignee's username.</question>
+   <question>2024年1月に報告され、クリティカル優先度としてマークされたすべてのバグの中で、48時間以内に割り当てられたバグの最も高い割合を解決した担当者は誰ですか？担当者のユーザー名を提供してください。</question>
    <answer>alex_eng</answer>
 </qa_pair>
 ```
 
-This question is good because:
-- Requires filtering bugs by date, priority, and status
-- Needs to group by assignee and calculate resolution rates
-- Requires understanding timestamps to determine 48-hour windows
-- Tests pagination (potentially many bugs to process)
-- Answer is a single username
-- Based on historical data from specific time period
+この質問が良い理由:
 
-**Example 4: Requires synthesis across multiple data types (CRM MCP)**
+- 日付、優先度、ステータスでバグをフィルタリングする必要がある
+- 担当者ごとにグループ化し、解決率を計算する必要がある
+- 48 時間のウィンドウを決定するためにタイムスタンプを理解する必要がある
+- ページネーションをテスト（処理するバグが潜在的に多数）
+- 回答は単一のユーザー名
+- 特定の期間の過去データに基づいている
+
+**例 4: 複数のデータタイプにわたる統合が必要（CRM MCP）**
+
 ```xml
 <qa_pair>
-   <question>Find the account that upgraded from the Starter to Enterprise plan in Q4 2023 and had the highest annual contract value. What industry does this account operate in?</question>
+   <question>2023年Q4にStarterからEnterpriseプランにアップグレードし、年間契約額が最も高かったアカウントを見つけてください。このアカウントはどの業界で運営していますか？</question>
    <answer>Healthcare</answer>
 </qa_pair>
 ```
 
-This question is good because:
-- Requires understanding subscription tier changes
-- Needs to identify upgrade events in specific timeframe
-- Requires comparing contract values
-- Must access account industry information
-- Answer is simple and verifiable
-- Based on completed historical transactions
+この質問が良い理由:
 
-### Poor Questions
+- サブスクリプション層の変更を理解する必要がある
+- 特定の時間枠でアップグレードイベントを識別する必要がある
+- 契約額を比較する必要がある
+- アカウントの業界情報にアクセスする必要がある
+- 回答はシンプルで検証可能
+- 完了した過去のトランザクションに基づいている
 
-**Example 1: Answer changes over time**
+### 悪い質問
+
+**例 1: 回答が時間とともに変化する**
+
 ```xml
 <qa_pair>
-   <question>How many open issues are currently assigned to the engineering team?</question>
+   <question>現在エンジニアリングチームに割り当てられているオープンな問題はいくつありますか？</question>
    <answer>47</answer>
 </qa_pair>
 ```
 
-This question is poor because:
-- The answer will change as issues are created, closed, or reassigned
-- Not based on stable/stationary data
-- Relies on "current state" which is dynamic
+この質問が悪い理由:
 
-**Example 2: Too easy with keyword search**
+- 問題が作成、クローズ、または再割り当てされると回答が変化する
+- 安定/定常データに基づいていない
+- 動的な「現在の状態」に依存している
+
+**例 2: キーワード検索で簡単すぎる**
+
 ```xml
 <qa_pair>
-   <question>Find the pull request with title "Add authentication feature" and tell me who created it.</question>
+   <question>「認証機能の追加」というタイトルのプルリクエストを見つけて、誰が作成したか教えてください。</question>
    <answer>developer123</answer>
 </qa_pair>
 ```
 
-This question is poor because:
-- Can be solved with a straightforward keyword search for exact title
-- Doesn't require deep exploration or understanding
-- No synthesis or analysis needed
+この質問が悪い理由:
 
-**Example 3: Ambiguous answer format**
+- 正確なタイトルの単純なキーワード検索で解決できる
+- 深い探索や理解を必要としない
+- 統合や分析が不要
+
+**例 3: 曖昧な回答フォーマット**
+
 ```xml
 <qa_pair>
-   <question>List all the repositories that have Python as their primary language.</question>
+   <question>Pythonを主要言語として持つすべてのリポジトリをリストアップしてください。</question>
    <answer>repo1, repo2, repo3, data-pipeline, ml-tools</answer>
 </qa_pair>
 ```
 
-This question is poor because:
-- Answer is a list that could be returned in any order
-- Difficult to verify with direct string comparison
-- LLM might format differently (JSON array, comma-separated, newline-separated)
-- Better to ask for a specific aggregate (count) or superlative (most stars)
+この質問が悪い理由:
+
+- 回答は任意の順序で返される可能性があるリスト
+- 直接文字列比較での検証が困難
+- LLM が異なる形式にする可能性がある（JSON 配列、カンマ区切り、改行区切り）
+- 特定の集計（カウント）または最上級（最も多くのスター）を尋ねる方が良い
+
+## 検証プロセス
+
+評価を作成した後:
+
+1. **XML ファイルを検査**してスキーマを理解する
+2. **各タスク指示をロード**し、MCP サーバーとツールを使用して並列に、自分でタスクを解こうとして正しい回答を識別する
+3. **書き込みまたは破壊的操作を必要とする操作をフラグ付け**する
+4. **すべての正しい回答を蓄積**し、ドキュメント内の誤った回答を置き換える
+5. **書き込みまたは破壊的操作を必要とする`<qa_pair>`を削除**する
+
+コンテキストが不足しないようにタスクの解決を並列化し、最後にすべての回答を蓄積してファイルに変更を加えることを忘れないでください。
+
+## 質の高い評価を作成するためのヒント
+
+1. **タスクを生成する前に深く考え、事前に計画する**
+2. **機会があれば並列化する** プロセスを高速化し、コンテキストを管理する
+3. **現実的なユースケースに焦点を当てる** 人間が実際に達成したいこと
+4. **挑戦的な質問を作成する** MCP サーバーの能力の限界をテストする
+5. **安定性を確保する** 過去のデータとクローズされた概念を使用する
+6. **回答を検証する** MCP サーバーツールを使用して自分で質問を解く
+7. **反復して改善する** プロセス中に学んだことに基づいて
+
+---
+
+# 評価の実行
+
+評価ファイルを作成した後、提供された評価ハーネスを使用して MCP サーバーをテストできます。
+
+## セットアップ
+
+1. **依存関係をインストール**
+
+   ```bash
+   pip install -r scripts/requirements.txt
+   ```
+
+   または手動でインストール:
+
+   ```bash
+   pip install anthropic mcp
+   ```
+
+2. **API キーを設定**
+
+   ```bash
+   export ANTHROPIC_API_KEY=your_api_key_here
+   ```
+
+## 評価ファイル形式
+
+評価ファイルは`<qa_pair>`要素を持つ XML 形式を使用します:
+
+```xml
+<evaluation>
+   <qa_pair>
+      <question>2024年Q2に作成され、完了したタスクの数が最も多いプロジェクトを見つけてください。プロジェクト名は何ですか？</question>
+      <answer>Website Redesign</answer>
+   </qa_pair>
+   <qa_pair>
+      <question>「バグ」とラベル付けされ、2024年3月にクローズされた問題を検索してください。最も多くの問題をクローズしたユーザーは誰ですか？ユーザー名を提供してください。</question>
+      <answer>sarah_dev</answer>
+   </qa_pair>
+</evaluation>
+```
+
+## 評価の実行
+
+評価スクリプト（`scripts/evaluation.py`）は 3 つのトランスポートタイプをサポートしています:
+
+**重要:**
+
+- **stdio トランスポート**: 評価スクリプトが自動的に MCP サーバープロセスを起動して管理します。サーバーを手動で実行しないでください。
+- **sse/http トランスポート**: 評価を実行する前に MCP サーバーを個別に起動する必要があります。スクリプトは指定された URL で既に実行中のサーバーに接続します。
+
+### 1. ローカル STDIO サーバー
+
+ローカルで実行される MCP サーバーの場合（スクリプトが自動的にサーバーを起動）:
+
+```bash
+python scripts/evaluation.py \
+  -t stdio \
+  -c python \
+  -a my_mcp_server.py \
+  evaluation.xml
+```
+
+環境変数を使用:
+
+```bash
+python scripts/evaluation.py \
+  -t stdio \
+  -c python \
+  -a my_mcp_server.py \
+  -e API_KEY=abc123 \
+  -e DEBUG=true \
+  evaluation.xml
+```
+
+### 2. Server-Sent Events（SSE）
+
+SSE ベースの MCP サーバーの場合（最初にサーバーを起動する必要があります）:
+
+```bash
+python scripts/evaluation.py \
+  -t sse \
+  -u https://example.com/mcp \
+  -H "Authorization: Bearer token123" \
+  -H "X-Custom-Header: value" \
+  evaluation.xml
+```
+
+### 3. HTTP（ストリーマブル HTTP）
+
+HTTP ベースの MCP サーバーの場合（最初にサーバーを起動する必要があります）:
+
+```bash
+python scripts/evaluation.py \
+  -t http \
+  -u https://example.com/mcp \
+  -H "Authorization: Bearer token123" \
+  evaluation.xml
+```
+
+## コマンドラインオプション
+
+```
+使用法: evaluation.py [-h] [-t {stdio,sse,http}] [-m MODEL] [-c COMMAND]
+                     [-a ARGS [ARGS ...]] [-e ENV [ENV ...]] [-u URL]
+                     [-H HEADERS [HEADERS ...]] [-o OUTPUT]
+                     eval_file
+
+位置引数:
+  eval_file             評価XMLファイルへのパス
+
+オプション引数:
+  -h, --help            ヘルプメッセージを表示
+  -t, --transport       トランスポートタイプ: stdio、sse、またはhttp（デフォルト: stdio）
+  -m, --model           使用するClaudeモデル（デフォルト: claude-3-7-sonnet-20250219）
+  -o, --output          レポートの出力ファイル（デフォルト: stdoutに出力）
+
+stdioオプション:
+  -c, --command         MCPサーバーを実行するコマンド（例: python、node）
+  -a, --args            コマンドの引数（例: server.py）
+  -e, --env             KEY=VALUE形式の環境変数
+
+sse/httpオプション:
+  -u, --url             MCPサーバーURL
+  -H, --header          'Key: Value'形式のHTTPヘッダー
+```
+
+## 出力
+
+評価スクリプトは以下を含む詳細なレポートを生成します:
+
+- **要約統計**:
+
+  - 精度（正解数/総数）
+  - タスクあたりの平均所要時間
+  - タスクあたりの平均ツール呼び出し数
+  - 総ツール呼び出し数
+
+- **タスクごとの結果**:
+  - プロンプトと期待される応答
+  - エージェントからの実際の応答
+  - 回答が正しかったか（✅/❌）
+  - 所要時間とツール呼び出しの詳細
+  - エージェントのアプローチの要約
+  - ツールに関するエージェントのフィードバック
+
+### レポートをファイルに保存
+
+```bash
+python scripts/evaluation.py \
+  -t stdio \
+  -c python \
+  -a my_server.py \
+  -o evaluation_report.md \
+  evaluation.xml
+```
+
+## 完全な例のワークフロー
+
+評価の作成と実行の完全な例は以下の通りです:
+
+1. **評価ファイルを作成**（`my_evaluation.xml`）:
+
+```xml
+<evaluation>
+   <qa_pair>
+      <question>2024年1月に最も多くの問題を作成したユーザーを見つけてください。彼らのユーザー名は何ですか？</question>
+      <answer>alice_developer</answer>
+   </qa_pair>
+   <qa_pair>
+      <question>2024年Q1にマージされたすべてのプルリクエストの中で、最も多くの数を持つリポジトリはどれですか？リポジトリ名を提供してください。</question>
+      <answer>backend-api</answer>
+   </qa_pair>
+   <qa_pair>
+      <question>2023年12月に完了し、開始から終了までの期間が最も長かったプロジェクトを見つけてください。何日かかりましたか？</question>
+      <answer>127</answer>
+   </qa_pair>
+</evaluation>
+```
+
+2. **依存関係をインストール**:
+
+```bash
+pip install -r scripts/requirements.txt
+export ANTHROPIC_API_KEY=your_api_key
+```
+
+3. **評価を実行**:
+
+```bash
+python scripts/evaluation.py \
+  -t stdio \
+  -c python \
+  -a github_mcp_server.py \
+  -e GITHUB_TOKEN=ghp_xxx \
+  -o github_eval_report.md \
+  my_evaluation.xml
+```
+
+4. **`github_eval_report.md`でレポートを確認**して:
+   - どの質問が合格/不合格だったかを確認
+   - ツールに関するエージェントのフィードバックを読む
+   - 改善領域を特定
+   - MCP サーバー設計を反復
+
+## トラブルシューティング
+
+### 接続エラー
+
+接続エラーが発生した場合:
+
+- **STDIO**: コマンドと引数が正しいことを確認
+- **SSE/HTTP**: URL がアクセス可能で、ヘッダーが正しいことを確認
+- 必要な API キーが環境変数またはヘッダーに設定されていることを確認
+
+### 低い精度
+
+多くの評価が失敗する場合:
+
+- 各タスクのエージェントのフィードバックを確認
+- ツールの説明が明確で包括的かチェック
+- 入力パラメータが十分にドキュメント化されているか確認
+- ツールが返すデータが多すぎるか少なすぎるか検討
+- エラーメッセージが実行可能であることを確認
+
+### タイムアウトの問題
+
+タスクがタイムアウトする場合:
+
+- より強力なモデルを使用（例: `claude-3-7-sonnet-20250219`）
+- ツールが返すデータが多すぎないかチェック
+- ページネーションが正しく機能しているか確認
+- 複雑な質問を簡素化することを検討
+
+## 出力フォーマット
+
+各 QA ペアは質問と回答で構成されます。出力は以下の構造を持つ XML ファイルであるべきです:
+
+```xml
+<evaluation>
+   <qa_pair>
+      <question>2024年Q2に作成され、完了したタスクの数が最も多いプロジェクトを見つけてください。プロジェクト名は何ですか？</question>
+      <answer>Website Redesign</answer>
+   </qa_pair>
+   <qa_pair>
+      <question>「バグ」とラベル付けされ、2024年3月にクローズされた問題を検索してください。最も多くの問題をクローズしたユーザーは誰ですか？ユーザー名を提供してください。</question>
+      <answer>sarah_dev</answer>
+   </qa_pair>
+   <qa_pair>
+      <question>/apiディレクトリのファイルを変更し、2024年1月1日から1月31日の間にマージされたプルリクエストを探してください。これらのPRに取り組んだ異なるコントリビューターは何人いますか？</question>
+      <answer>7</answer>
+   </qa_pair>
+   <qa_pair>
+      <question>2023年より前に作成され、最も多くのスターを持つリポジトリを見つけてください。リポジトリ名は何ですか？</question>
+      <answer>data-pipeline</answer>
+   </qa_pair>
+</evaluation>
+```
+
+## 評価の例
+
+### 良い質問
+
+**例 1: 深い探索を必要とするマルチホップ質問（GitHub MCP）**
+
+```xml
+<qa_pair>
+   <question>2023年Q3にアーカイブされ、以前は組織内で最もフォークされたプロジェクトだったリポジトリを見つけてください。そのリポジトリで使用されていた主要なプログラミング言語は何でしたか？</question>
+   <answer>Python</answer>
+</qa_pair>
+```
+
+この質問が良い理由:
+
+- アーカイブされたリポジトリを見つけるために複数の検索が必要
+- アーカイブ前に最も多くフォークされたものを識別する必要がある
+- 言語のためにリポジトリの詳細を調べる必要がある
+- 回答はシンプルで検証可能な値
+- 変化しない過去の（クローズされた）データに基づいている
+
+**例 2: キーワードマッチングなしでコンテキストの理解が必要（プロジェクト管理 MCP）**
+
+```xml
+<qa_pair>
+   <question>2023年後半に完了した顧客オンボーディングの改善に焦点を当てたイニシアチブを見つけてください。プロジェクトリーダーは完了後に振り返りドキュメントを作成しました。その時点でのリーダーの役職は何でしたか？</question>
+   <answer>Product Manager</answer>
+</qa_pair>
+```
+
+この質問が良い理由:
+
+- 特定のプロジェクト名を使用していない（「顧客オンボーディングの改善に焦点を当てたイニシアチブ」）
+- 特定の時間枠から完了したプロジェクトを見つける必要がある
+- プロジェクトリーダーとその役割を識別する必要がある
+- 振り返りドキュメントからのコンテキストの理解が必要
+- 回答は人間が読めて安定している
+- 完了した作業に基づいている（変化しない）
+
+**例 3: 複数のステップを必要とする複雑な集約（問題トラッカー MCP）**
+
+```xml
+<qa_pair>
+   <question>2024年1月に報告され、クリティカル優先度としてマークされたすべてのバグの中で、48時間以内に割り当てられたバグの最も高い割合を解決した担当者は誰ですか？担当者のユーザー名を提供してください。</question>
+   <answer>alex_eng</answer>
+</qa_pair>
+```
+
+この質問が良い理由:
+
+- 日付、優先度、ステータスでバグをフィルタリングする必要がある
+- 担当者ごとにグループ化し、解決率を計算する必要がある
+- 48 時間のウィンドウを決定するためにタイムスタンプを理解する必要がある
+- ページネーションをテスト（処理するバグが潜在的に多数）
+- 回答は単一のユーザー名
+- 特定の期間の過去データに基づいている
+
+**例 4: 複数のデータタイプにわたる統合が必要（CRM MCP）**
+
+```xml
+<qa_pair>
+   <question>2023年Q4にStarterからEnterpriseプランにアップグレードし、年間契約額が最も高かったアカウントを見つけてください。このアカウントはどの業界で運営していますか？</question>
+   <answer>Healthcare</answer>
+</qa_pair>
+```
+
+この質問が良い理由:
+
+- サブスクリプション層の変更を理解する必要がある
+- 特定の時間枠でアップグレードイベントを識別する必要がある
+- 契約額を比較する必要がある
+- アカウントの業界情報にアクセスする必要がある
+- 回答はシンプルで検証可能
+- 完了した過去のトランザクションに基づいている
+
+### 悪い質問
+
+**例 1: 回答が時間とともに変化する**
+
+```xml
+<qa_pair>
+   <question>現在エンジニアリングチームに割り当てられているオープンな問題はいくつありますか？</question>
+   <answer>47</answer>
+</qa_pair>
+```
+
+この質問が悪い理由:
+
+- 問題が作成、クローズ、または再割り当てされると回答が変化する
+- 安定/定常データに基づいていない
+- 動的な「現在の状態」に依存している
+
+**例 2: キーワード検索で簡単すぎる**
+
+```xml
+<qa_pair>
+   <question>「認証機能の追加」というタイトルのプルリクエストを見つけて、誰が作成したか教えてください。</question>
+   <answer>developer123</answer>
+</qa_pair>
+```
+
+この質問が悪い理由:
+
+- 正確なタイトルの単純なキーワード検索で解決できる
+- 深い探索や理解を必要としない
+- 統合や分析が不要
+
+**例 3: 曖昧な回答フォーマット**
+
+```xml
+<qa_pair>
+   <question>Pythonを主要言語として持つすべてのリポジトリをリストアップしてください。</question>
+   <answer>repo1, repo2, repo3, data-pipeline, ml-tools</answer>
+</qa_pair>
+```
+
+この質問が悪い理由:
+
+- 回答は任意の順序で返される可能性があるリスト
+- 直接文字列比較での検証が困難
+- LLM が異なる形式にする可能性がある（JSON 配列、カンマ区切り、改行区切り）
+- 特定の集計（カウント）または最上級（最も多くのスター）を尋ねる方が良い
 
 ## Verification Process
 
@@ -388,6 +826,7 @@ After creating your evaluation file, you can use the provided evaluation harness
    ```
 
    Or install manually:
+
    ```bash
    pip install anthropic mcp
    ```
@@ -420,6 +859,7 @@ Evaluation files use XML format with `<qa_pair>` elements:
 The evaluation script (`scripts/evaluation.py`) supports three transport types:
 
 **Important:**
+
 - **stdio transport**: The evaluation script automatically launches and manages the MCP server process for you. Do not run the server manually.
 - **sse/http transports**: You must start the MCP server separately before running the evaluation. The script connects to the already-running server at the specified URL.
 
@@ -436,6 +876,7 @@ python scripts/evaluation.py \
 ```
 
 With environment variables:
+
 ```bash
 python scripts/evaluation.py \
   -t stdio \
@@ -503,6 +944,7 @@ sse/http options:
 The evaluation script generates a detailed report including:
 
 - **Summary Statistics**:
+
   - Accuracy (correct/total)
   - Average task duration
   - Average tool calls per task
@@ -569,34 +1011,37 @@ python scripts/evaluation.py \
   my_evaluation.xml
 ```
 
-4. **Review the report** in `github_eval_report.md` to:
-   - See which questions passed/failed
-   - Read the agent's feedback on your tools
-   - Identify areas for improvement
-   - Iterate on your MCP server design
+4. **`github_eval_report.md`でレポートを確認**して:
+   - どの質問が合格/不合格だったかを確認
+   - ツールに関するエージェントのフィードバックを読む
+   - 改善領域を特定
+   - MCP サーバー設計を反復
 
-## Troubleshooting
+## トラブルシューティング
 
-### Connection Errors
+### 接続エラー
 
-If you get connection errors:
-- **STDIO**: Verify the command and arguments are correct
-- **SSE/HTTP**: Check the URL is accessible and headers are correct
-- Ensure any required API keys are set in environment variables or headers
+接続エラーが発生した場合:
 
-### Low Accuracy
+- **STDIO**: コマンドと引数が正しいことを確認
+- **SSE/HTTP**: URL がアクセス可能で、ヘッダーが正しいことを確認
+- 必要な API キーが環境変数またはヘッダーに設定されていることを確認
 
-If many evaluations fail:
-- Review the agent's feedback for each task
-- Check if tool descriptions are clear and comprehensive
-- Verify input parameters are well-documented
-- Consider whether tools return too much or too little data
-- Ensure error messages are actionable
+### 低い精度
 
-### Timeout Issues
+多くの評価が失敗する場合:
 
-If tasks are timing out:
-- Use a more capable model (e.g., `claude-3-7-sonnet-20250219`)
-- Check if tools are returning too much data
-- Verify pagination is working correctly
-- Consider simplifying complex questions
+- 各タスクのエージェントのフィードバックを確認
+- ツールの説明が明確で包括的かチェック
+- 入力パラメータが十分にドキュメント化されているか確認
+- ツールが返すデータが多すぎるか少なすぎるか検討
+- エラーメッセージが実行可能であることを確認
+
+### タイムアウトの問題
+
+タスクがタイムアウトする場合:
+
+- より強力なモデルを使用（例: `claude-3-7-sonnet-20250219`）
+- ツールが返すデータが多すぎないかチェック
+- ページネーションが正しく機能しているか確認
+- 複雑な質問を簡素化することを検討

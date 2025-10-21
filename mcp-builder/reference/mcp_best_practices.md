@@ -1,132 +1,144 @@
-# MCP Server Development Best Practices and Guidelines
+# MCP サーバー開発のベストプラクティスとガイドライン
 
-## Overview
+## 概要
 
-This document compiles essential best practices and guidelines for building Model Context Protocol (MCP) servers. It covers naming conventions, tool design, response formats, pagination, error handling, security, and compliance requirements.
-
----
-
-## Quick Reference
-
-### Server Naming
-- **Python**: `{service}_mcp` (e.g., `slack_mcp`)
-- **Node/TypeScript**: `{service}-mcp-server` (e.g., `slack-mcp-server`)
-
-### Tool Naming
-- Use snake_case with service prefix
-- Format: `{service}_{action}_{resource}`
-- Example: `slack_send_message`, `github_create_issue`
-
-### Response Formats
-- Support both JSON and Markdown formats
-- JSON for programmatic processing
-- Markdown for human readability
-
-### Pagination
-- Always respect `limit` parameter
-- Return `has_more`, `next_offset`, `total_count`
-- Default to 20-50 items
-
-### Character Limits
-- Set CHARACTER_LIMIT constant (typically 25,000)
-- Truncate gracefully with clear messages
-- Provide guidance on filtering
+このドキュメントは、Model Context Protocol（MCP）サーバーを構築するための重要なベストプラクティスとガイドラインをまとめたものです。命名規則、ツール設計、応答フォーマット、ページネーション、エラーハンドリング、セキュリティ、コンプライアンス要件をカバーしています。
 
 ---
 
-## Table of Contents
-1. Server Naming Conventions
-2. Tool Naming and Design
-3. Response Format Guidelines
-4. Pagination Best Practices
-5. Character Limits and Truncation
-6. Tool Development Best Practices
-7. Transport Best Practices
-8. Testing Requirements
-9. OAuth and Security Best Practices
-10. Resource Management Best Practices
-11. Prompt Management Best Practices
-12. Error Handling Standards
-13. Documentation Requirements
-14. Compliance and Monitoring
+## クイックリファレンス
+
+### サーバー命名
+
+- **Python**: `{service}_mcp`（例: `slack_mcp`）
+- **Node/TypeScript**: `{service}-mcp-server`（例: `slack-mcp-server`）
+
+### ツール命名
+
+- サービスプレフィックス付きの snake_case を使用
+- フォーマット: `{service}_{action}_{resource}`
+- 例: `slack_send_message`、`github_create_issue`
+
+### 応答フォーマット
+
+- JSON と Markdown の両方のフォーマットをサポート
+- JSON はプログラム的処理用
+- Markdown は人間の可読性用
+
+### ページネーション
+
+- 常に`limit`パラメータを尊重
+- `has_more`、`next_offset`、`total_count`を返す
+- デフォルトは 20〜50 項目
+
+### 文字制限
+
+- CHARACTER_LIMIT 定数を設定（通常 25,000）
+- 明確なメッセージで適切に切り捨て
+- フィルタリングに関するガイダンスを提供
 
 ---
 
-## 1. Server Naming Conventions
+## 目次
 
-Follow these standardized naming patterns for MCP servers:
-
-**Python**: Use format `{service}_mcp` (lowercase with underscores)
-- Examples: `slack_mcp`, `github_mcp`, `jira_mcp`, `stripe_mcp`
-
-**Node/TypeScript**: Use format `{service}-mcp-server` (lowercase with hyphens)
-- Examples: `slack-mcp-server`, `github-mcp-server`, `jira-mcp-server`
-
-The name should be:
-- General (not tied to specific features)
-- Descriptive of the service/API being integrated
-- Easy to infer from the task description
-- Without version numbers or dates
-
----
-
-## 2. Tool Naming and Design
-
-### Tool Naming Best Practices
-
-1. **Use snake_case**: `search_users`, `create_project`, `get_channel_info`
-2. **Include service prefix**: Anticipate that your MCP server may be used alongside other MCP servers
-   - Use `slack_send_message` instead of just `send_message`
-   - Use `github_create_issue` instead of just `create_issue`
-   - Use `asana_list_tasks` instead of just `list_tasks`
-3. **Be action-oriented**: Start with verbs (get, list, search, create, etc.)
-4. **Be specific**: Avoid generic names that could conflict with other servers
-5. **Maintain consistency**: Use consistent naming patterns within your server
-
-### Tool Design Guidelines
-
-- Tool descriptions must narrowly and unambiguously describe functionality
-- Descriptions must precisely match actual functionality
-- Should not create confusion with other MCP servers
-- Should provide tool annotations (readOnlyHint, destructiveHint, idempotentHint, openWorldHint)
-- Keep tool operations focused and atomic
+1. サーバー命名規則
+2. ツールの命名と設計
+3. 応答フォーマットガイドライン
+4. ページネーションのベストプラクティス
+5. 文字制限と切り捨て
+6. ツール開発のベストプラクティス
+7. トランスポートのベストプラクティス
+8. テスト要件
+9. OAuth とセキュリティのベストプラクティス
+10. リソース管理のベストプラクティス
+11. プロンプト管理のベストプラクティス
+12. エラーハンドリング標準
+13. ドキュメント要件
+14. コンプライアンスと監視
 
 ---
 
-## 3. Response Format Guidelines
+## 1. サーバー命名規則
 
-All tools that return data should support multiple formats for flexibility:
+MCP サーバーの標準化された命名パターンに従います:
 
-### JSON Format (`response_format="json"`)
-- Machine-readable structured data
-- Include all available fields and metadata
-- Consistent field names and types
-- Suitable for programmatic processing
-- Use for when LLMs need to process data further
+**Python**: フォーマット`{service}_mcp`を使用（アンダースコア付き小文字）
 
-### Markdown Format (`response_format="markdown"`, typically default)
-- Human-readable formatted text
-- Use headers, lists, and formatting for clarity
-- Convert timestamps to human-readable format (e.g., "2024-01-15 10:30:00 UTC" instead of epoch)
-- Show display names with IDs in parentheses (e.g., "@john.doe (U123456)")
-- Omit verbose metadata (e.g., show only one profile image URL, not all sizes)
-- Group related information logically
-- Use for when presenting information to users
+- 例: `slack_mcp`、`github_mcp`、`jira_mcp`、`stripe_mcp`
+
+**Node/TypeScript**: フォーマット`{service}-mcp-server`を使用（ハイフン付き小文字）
+
+- 例: `slack-mcp-server`、`github-mcp-server`、`jira-mcp-server`
+
+名前は以下であるべきです:
+
+- 一般的（特定の機能に紐付かない）
+- 統合されるサービス/API を説明的に表す
+- タスクの説明から推測しやすい
+- バージョン番号や日付なし
 
 ---
 
-## 4. Pagination Best Practices
+## 2. ツールの命名と設計
 
-For tools that list resources:
+### ツール命名のベストプラクティス
 
-- **Always respect the `limit` parameter**: Never load all results when a limit is specified
-- **Implement pagination**: Use `offset` or cursor-based pagination
-- **Return pagination metadata**: Include `has_more`, `next_offset`/`next_cursor`, `total_count`
-- **Never load all results into memory**: Especially important for large datasets
-- **Default to reasonable limits**: 20-50 items is typical
-- **Include clear pagination info in responses**: Make it easy for LLMs to request more data
+1. **snake_case を使用**: `search_users`、`create_project`、`get_channel_info`
+2. **サービスプレフィックスを含める**: MCP サーバーが他の MCP サーバーと一緒に使用される可能性を想定
+   - `send_message`ではなく`slack_send_message`を使用
+   - `create_issue`ではなく`github_create_issue`を使用
+   - `list_tasks`ではなく`asana_list_tasks`を使用
+3. **アクション指向**: 動詞で始める（get、list、search、create など）
+4. **具体的に**: 他のサーバーと競合する可能性のある一般的な名前を避ける
+5. **一貫性を維持**: サーバー内で一貫した命名パターンを使用
 
-Example pagination response structure:
+### ツール設計ガイドライン
+
+- ツールの説明は機能を狭く明確に記述する必要がある
+- 説明は実際の機能と正確に一致する必要がある
+- 他の MCP サーバーとの混乱を引き起こさないべき
+- ツールアノテーションを提供すべき（readOnlyHint、destructiveHint、idempotentHint、openWorldHint）
+- ツール操作を焦点を絞ったアトミックに保つ
+
+---
+
+## 3. 応答フォーマットガイドライン
+
+データを返すすべてのツールは、柔軟性のために複数のフォーマットをサポートする必要があります:
+
+### JSON フォーマット（`response_format="json"`）
+
+- 機械可読な構造化データ
+- 利用可能なすべてのフィールドとメタデータを含める
+- 一貫したフィールド名と型
+- プログラム的処理に適している
+- LLM がデータをさらに処理する必要がある場合に使用
+
+### Markdown フォーマット（`response_format="markdown"`、通常はデフォルト）
+
+- 人間が読める形式のテキスト
+- 明確さのためにヘッダー、リスト、フォーマットを使用
+- タイムスタンプを人間が読める形式に変換（例: エポック時間ではなく「2024-01-15 10:30:00 UTC」）
+- ID を括弧内に表示名と共に表示（例: "@john.doe (U123456)"）
+- 冗長なメタデータを省略（例: すべてのサイズではなく 1 つのプロフィール画像 URL のみを表示）
+- 関連情報を論理的にグループ化
+- ユーザーに情報を提示する際に使用
+
+---
+
+## 4. ページネーションのベストプラクティス
+
+リソースをリストするツールの場合:
+
+- **常に`limit`パラメータを尊重**: 制限が指定されている場合、すべての結果をロードしない
+- **ページネーションを実装**: `offset`またはカーソルベースのページネーションを使用
+- **ページネーションメタデータを返す**: `has_more`、`next_offset`/`next_cursor`、`total_count`を含める
+- **すべての結果をメモリにロードしない**: 特に大きなデータセットで重要
+- **合理的な制限をデフォルトにする**: 20〜50 項目が一般的
+- **応答に明確なページネーション情報を含める**: LLM がより多くのデータを要求しやすくする
+
+ページネーション応答構造の例:
+
 ```json
 {
   "total": 150,
@@ -140,17 +152,18 @@ Example pagination response structure:
 
 ---
 
-## 5. Character Limits and Truncation
+## 5. 文字制限と切り捨て
 
-To prevent overwhelming responses with too much data:
+過剰なデータで応答を圧倒しないようにするため:
 
-- **Define CHARACTER_LIMIT constant**: Typically 25,000 characters at module level
-- **Check response size before returning**: Measure the final response length
-- **Truncate gracefully with clear indicators**: Let the LLM know data was truncated
-- **Provide guidance on filtering**: Suggest how to use parameters to reduce results
-- **Include truncation metadata**: Show what was truncated and how to get more
+- **CHARACTER_LIMIT 定数を定義**: モジュールレベルで通常 25,000 文字
+- **返す前に応答サイズをチェック**: 最終的な応答長を測定
+- **明確な指標で適切に切り捨て**: データが切り捨てられたことを LLM に知らせる
+- **フィルタリングに関するガイダンスを提供**: パラメータを使用して結果を減らす方法を提案
+- **切り捨てメタデータを含める**: 何が切り捨てられたか、より多くを取得する方法を示す
 
-Example truncation handling:
+切り捨て処理の例:
+
 ```python
 CHARACTER_LIMIT = 25000
 
@@ -158,316 +171,339 @@ if len(result) > CHARACTER_LIMIT:
     truncated_data = data[:max(1, len(data) // 2)]
     response["truncated"] = True
     response["truncation_message"] = (
-        f"Response truncated from {len(data)} to {len(truncated_data)} items. "
-        f"Use 'offset' parameter or add filters to see more results."
+        f"応答を{len(data)}項目から{len(truncated_data)}項目に切り捨てました。"
+        f"より多くの結果を見るには'offset'パラメータを使用するか、フィルターを追加してください。"
     )
 ```
 
 ---
 
-## 6. Transport Options
+## 6. トランスポートオプション
 
-MCP servers support multiple transport mechanisms for different deployment scenarios:
+MCP サーバーは、異なる展開シナリオに対応する複数のトランスポートメカニズムをサポートしています:
 
-### Stdio Transport
+### Stdio トランスポート
 
-**Best for**: Command-line tools, local integrations, subprocess execution
+**最適な用途**: コマンドラインツール、ローカル統合、サブプロセス実行
 
-**Characteristics**:
-- Standard input/output stream communication
-- Simple setup, no network configuration needed
-- Runs as a subprocess of the client
-- Ideal for desktop applications and CLI tools
+**特徴**:
 
-**Use when**:
-- Building tools for local development environments
-- Integrating with desktop applications (e.g., Claude Desktop)
-- Creating command-line utilities
-- Single-user, single-session scenarios
+- 標準入出力ストリーム通信
+- シンプルなセットアップ、ネットワーク設定不要
+- クライアントのサブプロセスとして実行
+- デスクトップアプリケーションと CLI ツールに最適
 
-### HTTP Transport
+**使用する場合**:
 
-**Best for**: Web services, remote access, multi-client scenarios
+- ローカル開発環境用のツールを構築
+- デスクトップアプリケーションとの統合（例: Claude Desktop）
+- コマンドラインユーティリティの作成
+- シングルユーザー、シングルセッションのシナリオ
 
-**Characteristics**:
-- Request-response pattern over HTTP
-- Supports multiple simultaneous clients
-- Can be deployed as a web service
-- Requires network configuration and security considerations
+### HTTP トランスポート
 
-**Use when**:
-- Serving multiple clients simultaneously
-- Deploying as a cloud service
-- Integration with web applications
-- Need for load balancing or scaling
+**最適な用途**: Web サービス、リモートアクセス、マルチクライアントシナリオ
 
-### Server-Sent Events (SSE) Transport
+**特徴**:
 
-**Best for**: Real-time updates, push notifications, streaming data
+- HTTP 上のリクエスト-レスポンスパターン
+- 複数の同時クライアントをサポート
+- Web サービスとして展開可能
+- ネットワーク設定とセキュリティの考慮が必要
 
-**Characteristics**:
-- One-way server-to-client streaming over HTTP
-- Enables real-time updates without polling
-- Long-lived connections for continuous data flow
-- Built on standard HTTP infrastructure
+**使用する場合**:
 
-**Use when**:
-- Clients need real-time data updates
-- Implementing push notifications
-- Streaming logs or monitoring data
-- Progressive result delivery for long operations
+- 複数のクライアントに同時にサービスを提供
+- クラウドサービスとして展開
+- Web アプリケーションとの統合
+- ロードバランシングまたはスケーリングが必要
 
-### Transport Selection Criteria
+### Server-Sent Events（SSE）トランスポート
 
-| Criterion | Stdio | HTTP | SSE |
-|-----------|-------|------|-----|
-| **Deployment** | Local | Remote | Remote |
-| **Clients** | Single | Multiple | Multiple |
-| **Communication** | Bidirectional | Request-Response | Server-Push |
-| **Complexity** | Low | Medium | Medium-High |
-| **Real-time** | No | No | Yes |
+**最適な用途**: リアルタイム更新、プッシュ通知、ストリーミングデータ
 
----
+**特徴**:
 
-## 7. Tool Development Best Practices
+- HTTP 上の一方向サーバーからクライアントへのストリーミング
+- ポーリングなしでリアルタイム更新を可能にする
+- 継続的なデータフローのための長期接続
+- 標準 HTTP インフラストラクチャ上に構築
 
-### General Guidelines
-1. Tool names should be descriptive and action-oriented
-2. Use parameter validation with detailed JSON schemas
-3. Include examples in tool descriptions
-4. Implement proper error handling and validation
-5. Use progress reporting for long operations
-6. Keep tool operations focused and atomic
-7. Document expected return value structures
-8. Implement proper timeouts
-9. Consider rate limiting for resource-intensive operations
-10. Log tool usage for debugging and monitoring
+**使用する場合**:
 
-### Security Considerations for Tools
+- クライアントがリアルタイムデータ更新を必要とする
+- プッシュ通知の実装
+- ログや監視データのストリーミング
+- 長期操作の段階的な結果配信
 
-#### Input Validation
-- Validate all parameters against schema
-- Sanitize file paths and system commands
-- Validate URLs and external identifiers
-- Check parameter sizes and ranges
-- Prevent command injection
+### トランスポート選択基準
 
-#### Access Control
-- Implement authentication where needed
-- Use appropriate authorization checks
-- Audit tool usage
-- Rate limit requests
-- Monitor for abuse
-
-#### Error Handling
-- Don't expose internal errors to clients
-- Log security-relevant errors
-- Handle timeouts appropriately
-- Clean up resources after errors
-- Validate return values
-
-### Tool Annotations
-- Provide readOnlyHint and destructiveHint annotations
-- Remember annotations are hints, not security guarantees
-- Clients should not make security-critical decisions based solely on annotations
+| 基準             | Stdio    | HTTP                  | SSE              |
+| ---------------- | -------- | --------------------- | ---------------- |
+| **展開**         | ローカル | リモート              | リモート         |
+| **クライアント** | 単一     | 複数                  | 複数             |
+| **通信**         | 双方向   | リクエスト-レスポンス | サーバープッシュ |
+| **複雑さ**       | 低       | 中                    | 中〜高           |
+| **リアルタイム** | いいえ   | いいえ                | はい             |
 
 ---
 
-## 8. Transport Best Practices
+## 7. ツール開発のベストプラクティス
 
-### General Transport Guidelines
-1. Handle connection lifecycle properly
-2. Implement proper error handling
-3. Use appropriate timeout values
-4. Implement connection state management
-5. Clean up resources on disconnection
+### 一般的なガイドライン
 
-### Security Best Practices for Transport
-- Follow security considerations for DNS rebinding attacks
-- Implement proper authentication mechanisms
-- Validate message formats
-- Handle malformed messages gracefully
+1. ツール名は説明的でアクション指向であるべき
+2. 詳細な JSON スキーマでパラメータ検証を使用
+3. ツールの説明に例を含める
+4. 適切なエラーハンドリングと検証を実装
+5. 長期操作に進行状況レポートを使用
+6. ツール操作を焦点を絞ったアトミックに保つ
+7. 期待される戻り値構造をドキュメント化
+8. 適切なタイムアウトを実装
+9. リソース集約的な操作にレート制限を検討
+10. デバッグと監視のためにツール使用をログ記録
 
-### Stdio Transport Specific
-- Local MCP servers should NOT log to stdout (interferes with protocol)
-- Use stderr for logging messages
-- Handle standard I/O streams properly
+### ツールのセキュリティ考慮事項
 
----
+#### 入力検証
 
-## 9. Testing Requirements
+- スキーマに対してすべてのパラメータを検証
+- ファイルパスとシステムコマンドをサニタイズ
+- URL と外部 ID を検証
+- パラメータのサイズと範囲をチェック
+- コマンドインジェクションを防止
 
-A comprehensive testing strategy should cover:
+#### アクセス制御
 
-### Functional Testing
-- Verify correct execution with valid/invalid inputs
+- 必要に応じて認証を実装
+- 適切な認可チェックを使用
+- ツール使用を監査
+- リクエストをレート制限
+- 悪用を監視
 
-### Integration Testing
-- Test interaction with external systems
+#### エラーハンドリング
 
-### Security Testing
-- Validate auth, input sanitization, rate limiting
+- 内部エラーをクライアントに公開しない
+- セキュリティ関連のエラーをログ記録
+- タイムアウトを適切に処理
+- エラー後にリソースをクリーンアップ
+- 戻り値を検証
 
-### Performance Testing
-- Check behavior under load, timeouts
+### ツールアノテーション
 
-### Error Handling
-- Ensure proper error reporting and cleanup
-
----
-
-## 10. OAuth and Security Best Practices
-
-### Authentication and Authorization
-
-MCP servers that connect to external services should implement proper authentication:
-
-**OAuth 2.1 Implementation:**
-- Use secure OAuth 2.1 with certificates from recognized authorities
-- Validate access tokens before processing requests
-- Only accept tokens specifically intended for your server
-- Reject tokens without proper audience claims
-- Never pass through tokens received from MCP clients
-
-**API Key Management:**
-- Store API keys in environment variables, never in code
-- Validate keys on server startup
-- Provide clear error messages when authentication fails
-- Use secure transmission for sensitive credentials
-
-### Input Validation and Security
-
-**Always validate inputs:**
-- Sanitize file paths to prevent directory traversal
-- Validate URLs and external identifiers
-- Check parameter sizes and ranges
-- Prevent command injection in system calls
-- Use schema validation (Pydantic/Zod) for all inputs
-
-**Error handling security:**
-- Don't expose internal errors to clients
-- Log security-relevant errors server-side
-- Provide helpful but not revealing error messages
-- Clean up resources after errors
-
-### Privacy and Data Protection
-
-**Data collection principles:**
-- Only collect data strictly necessary for functionality
-- Don't collect extraneous conversation data
-- Don't collect PII unless explicitly required for the tool's purpose
-- Provide clear information about what data is accessed
-
-**Data transmission:**
-- Don't send data to servers outside your organization without disclosure
-- Use secure transmission (HTTPS) for all network communication
-- Validate certificates for external services
+- readOnlyHint と destructiveHint アノテーションを提供
+- アノテーションはヒントであり、セキュリティ保証ではないことを覚えておく
+- クライアントはアノテーションのみに基づいてセキュリティクリティカルな決定を行うべきではない
 
 ---
 
-## 11. Resource Management Best Practices
+## 8. トランスポートのベストプラクティス
 
-1. Only suggest necessary resources
-2. Use clear, descriptive names for roots
-3. Handle resource boundaries properly
-4. Respect client control over resources
-5. Use model-controlled primitives (tools) for automatic data exposure
+### 一般的なトランスポートガイドライン
 
----
+1. 接続ライフサイクルを適切に処理
+2. 適切なエラーハンドリングを実装
+3. 適切なタイムアウト値を使用
+4. 接続状態管理を実装
+5. 切断時にリソースをクリーンアップ
 
-## 12. Prompt Management Best Practices
+### トランスポートのセキュリティベストプラクティス
 
-- Clients should show users proposed prompts
-- Users should be able to modify or reject prompts
-- Clients should show users completions
-- Users should be able to modify or reject completions
-- Consider costs when using sampling
+- DNS リバインディング攻撃のセキュリティ考慮事項に従う
+- 適切な認証メカニズムを実装
+- メッセージフォーマットを検証
+- 不正なメッセージを適切に処理
 
----
+### Stdio トランスポート固有
 
-## 13. Error Handling Standards
-
-- Use standard JSON-RPC error codes
-- Report tool errors within result objects (not protocol-level)
-- Provide helpful, specific error messages
-- Don't expose internal implementation details
-- Clean up resources properly on errors
+- ローカル MCP サーバーは stdout にログ記録すべきではない（プロトコルに干渉）
+- ログメッセージに stderr を使用
+- 標準 I/O ストリームを適切に処理
 
 ---
 
-## 14. Documentation Requirements
+## 9. テスト要件
 
-- Provide clear documentation of all tools and capabilities
-- Include working examples (at least 3 per major feature)
-- Document security considerations
-- Specify required permissions and access levels
-- Document rate limits and performance characteristics
+包括的なテスト戦略は以下をカバーする必要があります:
+
+### 機能テスト
+
+- 有効/無効な入力での正しい実行を検証
+
+### 統合テスト
+
+- 外部システムとの相互作用をテスト
+
+### セキュリティテスト
+
+- 認証、入力サニタイゼーション、レート制限を検証
+
+### パフォーマンステスト
+
+- 負荷下の動作、タイムアウトをチェック
+
+### エラーハンドリング
+
+- 適切なエラー報告とクリーンアップを確認
 
 ---
 
-## 15. Compliance and Monitoring
+## 10. OAuth とセキュリティのベストプラクティス
 
-- Implement logging for debugging and monitoring
-- Track tool usage patterns
-- Monitor for potential abuse
-- Maintain audit trails for security-relevant operations
-- Be prepared for ongoing compliance reviews
+### 認証と認可
+
+外部サービスに接続する MCP サーバーは適切な認証を実装する必要があります:
+
+**OAuth 2.1 実装:**
+
+- 認定機関からの証明書を持つ安全な OAuth 2.1 を使用
+- リクエストを処理する前にアクセストークンを検証
+- サーバー専用のトークンのみを受け入れる
+- 適切なオーディエンスクレームのないトークンを拒否
+- MCP クライアントから受信したトークンをパススルーしない
+
+**API キー管理:**
+
+- API キーは環境変数に保存し、コードには絶対に保存しない
+- サーバー起動時にキーを検証
+- 認証が失敗した場合、明確なエラーメッセージを提供
+- 機密資格情報には安全な送信を使用
+
+### 入力検証とセキュリティ
+
+**常に入力を検証:**
+
+- ディレクトリトラバーサルを防ぐためにファイルパスをサニタイズ
+- URL と外部 ID を検証
+- パラメータのサイズと範囲をチェック
+- システムコールでのコマンドインジェクションを防止
+- すべての入力にスキーマ検証（Pydantic/Zod）を使用
+
+**エラーハンドリングのセキュリティ:**
+
+- 内部エラーをクライアントに公開しない
+- セキュリティ関連のエラーをサーバー側でログ記録
+- 役立つが明示的ではないエラーメッセージを提供
+- エラー後にリソースをクリーンアップ
+
+### プライバシーとデータ保護
+
+**データ収集の原則:**
+
+- 機能に厳密に必要なデータのみを収集
+- 無関係な会話データを収集しない
+- ツールの目的に明示的に必要でない限り PII を収集しない
+- アクセスされるデータについて明確な情報を提供
+
+**データ送信:**
+
+- 開示なしに組織外のサーバーにデータを送信しない
+- すべてのネットワーク通信に安全な送信（HTTPS）を使用
+- 外部サービスの証明書を検証
 
 ---
 
-## Summary
+## 11. リソース管理のベストプラクティス
 
-These best practices represent the comprehensive guidelines for building secure, efficient, and compliant MCP servers that work well within the ecosystem. Developers should follow these guidelines to ensure their MCP servers meet the standards for inclusion in the MCP directory and provide a safe, reliable experience for users.
+1. 必要なリソースのみを提案
+2. ルートに明確で説明的な名前を使用
+3. リソース境界を適切に処理
+4. リソースに対するクライアントの制御を尊重
+5. 自動データ公開にモデル制御プリミティブ（ツール）を使用
 
+---
 
-----------
+## 12. プロンプト管理のベストプラクティス
 
+- クライアントは提案されたプロンプトをユーザーに表示すべき
+- ユーザーはプロンプトを変更または拒否できるべき
+- クライアントは補完をユーザーに表示すべき
+- ユーザーは補完を変更または拒否できるべき
+- サンプリング使用時にコストを考慮
 
-# Tools
+---
 
-> Enable LLMs to perform actions through your server
+## 13. エラーハンドリング標準
 
-Tools are a powerful primitive in the Model Context Protocol (MCP) that enable servers to expose executable functionality to clients. Through tools, LLMs can interact with external systems, perform computations, and take actions in the real world.
+- 標準 JSON-RPC エラーコードを使用
+- 結果オブジェクト内でツールエラーを報告（プロトコルレベルではない）
+- 役立つ、具体的なエラーメッセージを提供
+- 内部実装の詳細を公開しない
+- エラー時に適切にリソースをクリーンアップ
+
+---
+
+## 14. ドキュメント要件
+
+- すべてのツールと機能の明確なドキュメントを提供
+- 主要な機能ごとに少なくとも 3 つの動作例を含める
+- セキュリティの考慮事項をドキュメント化
+- 必要な権限とアクセスレベルを指定
+- レート制限とパフォーマンス特性をドキュメント化
+
+---
+
+## 15. コンプライアンスと監視
+
+- デバッグと監視のためのログを実装
+- ツール使用パターンを追跡
+- 潜在的な悪用を監視
+- セキュリティ関連操作の監査証跡を維持
+- 継続的なコンプライアンスレビューに備える
+
+---
+
+## まとめ
+
+これらのベストプラクティスは、エコシステム内でうまく機能する安全で効率的、かつコンプライアンスに準拠した MCP サーバーを構築するための包括的なガイドラインを表しています。開発者は、MCP ディレクトリに含めるための基準を満たし、ユーザーに安全で信頼性の高い体験を提供するために、これらのガイドラインに従う必要があります。
+
+---
+
+# ツール
+
+> LLM がサーバーを通じてアクションを実行できるようにする
+
+ツールは、サーバーが実行可能な機能をクライアントに公開できるようにする Model Context Protocol（MCP）の強力なプリミティブです。ツールを通じて、LLM は外部システムと対話し、計算を実行し、現実世界でアクションを実行できます。
 
 <Note>
-  Tools are designed to be **model-controlled**, meaning that tools are exposed from servers to clients with the intention of the AI model being able to automatically invoke them (with a human in the loop to grant approval).
+  ツールは**モデル制御**されるように設計されています。つまり、ツールはサーバーからクライアントに公開され、AIモデルが（承認を得るために人間をループに入れて）自動的に呼び出すことができることを意図しています。
 </Note>
 
-## Overview
+## 概要
 
-Tools in MCP allow servers to expose executable functions that can be invoked by clients and used by LLMs to perform actions. Key aspects of tools include:
+MCP のツールにより、サーバーはクライアントが呼び出し、LLM がアクションを実行するために使用できる実行可能関数を公開できます。ツールの主な側面には以下が含まれます:
 
-* **Discovery**: Clients can obtain a list of available tools by sending a `tools/list` request
-* **Invocation**: Tools are called using the `tools/call` request, where servers perform the requested operation and return results
-* **Flexibility**: Tools can range from simple calculations to complex API interactions
+- **発見**: クライアントは`tools/list`リクエストを送信して利用可能なツールのリストを取得できる
+- **呼び出し**: ツールは`tools/call`リクエストを使用して呼び出され、サーバーは要求された操作を実行して結果を返す
+- **柔軟性**: ツールは単純な計算から複雑な API 相互作用まで幅広い
 
-Like [resources](/docs/concepts/resources), tools are identified by unique names and can include descriptions to guide their usage. However, unlike resources, tools represent dynamic operations that can modify state or interact with external systems.
+[resources](/docs/concepts/resources)と同様に、ツールは一意の名前で識別され、使用法を案内するための説明を含めることができます。ただし、リソースとは異なり、ツールは状態を変更したり外部システムと対話したりできる動的な操作を表します。
 
-## Tool definition structure
+## ツール定義構造
 
-Each tool is defined with the following structure:
+各ツールは以下の構造で定義されます:
 
 ```typescript
 {
-  name: string;          // Unique identifier for the tool
-  description?: string;  // Human-readable description
-  inputSchema: {         // JSON Schema for the tool's parameters
+  name: string;          // ツールの一意の識別子
+  description?: string;  // 人間が読める説明
+  inputSchema: {         // ツールのパラメータのJSONスキーマ
     type: "object",
-    properties: { ... }  // Tool-specific parameters
+    properties: { ... }  // ツール固有のパラメータ
   },
-  annotations?: {        // Optional hints about tool behavior
-    title?: string;      // Human-readable title for the tool
-    readOnlyHint?: boolean;    // If true, the tool does not modify its environment
-    destructiveHint?: boolean; // If true, the tool may perform destructive updates
-    idempotentHint?: boolean;  // If true, repeated calls with same args have no additional effect
-    openWorldHint?: boolean;   // If true, tool interacts with external entities
+  annotations?: {        // ツールの動作に関するオプションのヒント
+    title?: string;      // ツールの人間が読めるタイトル
+    readOnlyHint?: boolean;    // trueの場合、ツールは環境を変更しない
+    destructiveHint?: boolean; // trueの場合、ツールは破壊的な更新を実行する可能性がある
+    idempotentHint?: boolean;  // trueの場合、同じ引数での繰り返し呼び出しは追加効果がない
+    openWorldHint?: boolean;   // trueの場合、ツールは外部エンティティと対話する
   }
 }
 ```
 
-## Implementing tools
+## ツールの実装
 
-Here's an example of implementing a basic tool in an MCP server:
+MCP サーバーで基本的なツールを実装する例は以下の通りです:
 
 <Tabs>
   <Tab title="TypeScript">
@@ -481,12 +517,12 @@ Here's an example of implementing a basic tool in an MCP server:
       }
     });
 
-    // Define available tools
+    // 利用可能なツールを定義
     server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: [{
           name: "calculate_sum",
-          description: "Add two numbers together",
+          description: "2つの数値を加算する",
           inputSchema: {
             type: "object",
             properties: {
@@ -499,7 +535,7 @@ Here's an example of implementing a basic tool in an MCP server:
       };
     });
 
-    // Handle tool execution
+    // ツール実行を処理
     server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (request.params.name === "calculate_sum") {
         const { a, b } = request.params.arguments;
@@ -512,9 +548,10 @@ Here's an example of implementing a basic tool in an MCP server:
           ]
         };
       }
-      throw new Error("Tool not found");
+      throw new Error("ツールが見つかりません");
     });
     ```
+
   </Tab>
 
   <Tab title="Python">
@@ -526,7 +563,7 @@ Here's an example of implementing a basic tool in an MCP server:
         return [
             types.Tool(
                 name="calculate_sum",
-                description="Add two numbers together",
+                description="2つの数値を加算する",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -548,23 +585,24 @@ Here's an example of implementing a basic tool in an MCP server:
             b = arguments["b"]
             result = a + b
             return [types.TextContent(type="text", text=str(result))]
-        raise ValueError(f"Tool not found: {name}")
+        raise ValueError(f"ツールが見つかりません: {name}")
     ```
+
   </Tab>
 </Tabs>
 
-## Example tool patterns
+## ツールパターンの例
 
-Here are some examples of types of tools that a server could provide:
+サーバーが提供できるツールのタイプの例をいくつか示します:
 
-### System operations
+### システム操作
 
-Tools that interact with the local system:
+ローカルシステムと対話するツール:
 
 ```typescript
 {
   name: "execute_command",
-  description: "Run a shell command",
+  description: "シェルコマンドを実行する",
   inputSchema: {
     type: "object",
     properties: {
@@ -575,14 +613,14 @@ Tools that interact with the local system:
 }
 ```
 
-### API integrations
+### API 統合
 
-Tools that wrap external APIs:
+外部 API をラップするツール:
 
 ```typescript
 {
   name: "github_create_issue",
-  description: "Create a GitHub issue",
+  description: "GitHub issueを作成する",
   inputSchema: {
     type: "object",
     properties: {
@@ -594,14 +632,14 @@ Tools that wrap external APIs:
 }
 ```
 
-### Data processing
+### データ処理
 
-Tools that transform or analyze data:
+データを変換または分析するツール:
 
 ```typescript
 {
   name: "analyze_csv",
-  description: "Analyze a CSV file",
+  description: "CSVファイルを分析する",
   inputSchema: {
     type: "object",
     properties: {
@@ -617,90 +655,90 @@ Tools that transform or analyze data:
 }
 ```
 
-## Best practices
+## ベストプラクティス
 
-When implementing tools:
+ツールを実装する際:
 
-1. Provide clear, descriptive names and descriptions
-2. Use detailed JSON Schema definitions for parameters
-3. Include examples in tool descriptions to demonstrate how the model should use them
-4. Implement proper error handling and validation
-5. Use progress reporting for long operations
-6. Keep tool operations focused and atomic
-7. Document expected return value structures
-8. Implement proper timeouts
-9. Consider rate limiting for resource-intensive operations
-10. Log tool usage for debugging and monitoring
+1. 明確で説明的な名前と説明を提供する
+2. パラメータの詳細な JSON スキーマ定義を使用する
+3. モデルが使用方法を示すためにツールの説明に例を含める
+4. 適切なエラーハンドリングと検証を実装する
+5. 長期操作に進行状況レポートを使用する
+6. ツール操作を焦点を絞ったアトミックに保つ
+7. 期待される戻り値構造をドキュメント化する
+8. 適切なタイムアウトを実装する
+9. リソース集約的な操作にレート制限を検討する
+10. デバッグと監視のためにツール使用をログ記録する
 
-### Tool name conflicts
+### ツール名の競合
 
-MCP client applications and MCP server proxies may encounter tool name conflicts when building their own tool lists. For example, two connected MCP servers `web1` and `web2` may both expose a tool named `search_web`.
+MCP クライアントアプリケーションと MCP サーバープロキシは、独自のツールリストを構築する際にツール名の競合に遭遇する可能性があります。例えば、接続された 2 つの MCP サーバー`web1`と`web2`は両方とも`search_web`という名前のツールを公開する可能性があります。
 
-Applications may disambiguiate tools with one of the following strategies (among others; not an exhaustive list):
+アプリケーションは以下の戦略のいずれか（網羅的ではない）でツールを明確化できます:
 
-* Concatenating a unique, user-defined server name with the tool name, e.g. `web1___search_web` and `web2___search_web`. This strategy may be preferable when unique server names are already provided by the user in a configuration file.
-* Generating a random prefix for the tool name, e.g. `jrwxs___search_web` and `6cq52___search_web`. This strategy may be preferable in server proxies where user-defined unique names are not available.
-* Using the server URI as a prefix for the tool name, e.g. `web1.example.com:search_web` and `web2.example.com:search_web`. This strategy may be suitable when working with remote MCP servers.
+- 一意のユーザー定義サーバー名とツール名を連結する、例: `web1___search_web`と`web2___search_web`。この戦略は、一意のサーバー名が設定ファイルでユーザーによってすでに提供されている場合に好ましい場合があります。
+- ツール名のランダムなプレフィックスを生成する、例: `jrwxs___search_web`と`6cq52___search_web`。この戦略は、ユーザー定義の一意の名前が利用できないサーバープロキシで好ましい場合があります。
+- サーバー URI をツール名のプレフィックスとして使用する、例: `web1.example.com:search_web`と`web2.example.com:search_web`。この戦略は、リモート MCP サーバーを操作する際に適している場合があります。
 
-Note that the server-provided name from the initialization flow is not guaranteed to be unique and is not generally suitable for disambiguation purposes.
+初期化フローからサーバーが提供する名前は一意であることが保証されておらず、一般的に明確化の目的には適していないことに注意してください。
 
-## Security considerations
+## セキュリティの考慮事項
 
-When exposing tools:
+ツールを公開する際:
 
-### Input validation
+### 入力検証
 
-* Validate all parameters against the schema
-* Sanitize file paths and system commands
-* Validate URLs and external identifiers
-* Check parameter sizes and ranges
-* Prevent command injection
+- スキーマに対してすべてのパラメータを検証
+- ファイルパスとシステムコマンドをサニタイズ
+- URL と外部 ID を検証
+- パラメータのサイズと範囲をチェック
+- コマンドインジェクションを防止
 
-### Access control
+### アクセス制御
 
-* Implement authentication where needed
-* Use appropriate authorization checks
-* Audit tool usage
-* Rate limit requests
-* Monitor for abuse
+- 必要に応じて認証を実装
+- 適切な認可チェックを使用
+- ツール使用を監査
+- リクエストをレート制限
+- 悪用を監視
 
-### Error handling
+### エラーハンドリング
 
-* Don't expose internal errors to clients
-* Log security-relevant errors
-* Handle timeouts appropriately
-* Clean up resources after errors
-* Validate return values
+- 内部エラーをクライアントに公開しない
+- セキュリティ関連のエラーをログ記録
+- タイムアウトを適切に処理
+- エラー後にリソースをクリーンアップ
+- 戻り値を検証
 
-## Tool discovery and updates
+## ツールの発見と更新
 
-MCP supports dynamic tool discovery:
+MCP は動的なツール発見をサポートしています:
 
-1. Clients can list available tools at any time
-2. Servers can notify clients when tools change using `notifications/tools/list_changed`
-3. Tools can be added or removed during runtime
-4. Tool definitions can be updated (though this should be done carefully)
+1. クライアントはいつでも利用可能なツールをリストできる
+2. サーバーは`notifications/tools/list_changed`を使用してツールが変更されたことをクライアントに通知できる
+3. ツールは実行時に追加または削除できる
+4. ツール定義を更新できる（ただし、これは慎重に行うべき）
 
-## Error handling
+## エラーハンドリング
 
-Tool errors should be reported within the result object, not as MCP protocol-level errors. This allows the LLM to see and potentially handle the error. When a tool encounters an error:
+ツールエラーは、MCP プロトコルレベルのエラーとしてではなく、結果オブジェクト内で報告すべきです。これにより、LLM はエラーを見て、潜在的に処理できます。ツールがエラーに遭遇した場合:
 
-1. Set `isError` to `true` in the result
-2. Include error details in the `content` array
+1. 結果で`isError`を`true`に設定
+2. `content`配列にエラーの詳細を含める
 
-Here's an example of proper error handling for tools:
+ツールの適切なエラーハンドリングの例は以下の通りです:
 
 <Tabs>
   <Tab title="TypeScript">
     ```typescript
     try {
-      // Tool operation
+      // ツール操作
       const result = performOperation();
       return {
         content: [
           {
             type: "text",
-            text: `Operation successful: ${result}`
+            text: `操作成功: ${result}`
           }
         ]
       };
@@ -710,7 +748,7 @@ Here's an example of proper error handling for tools:
         content: [
           {
             type: "text",
-            text: `Error: ${error.message}`
+            text: `エラー: ${error.message}`
           }
         ]
       };
@@ -721,13 +759,13 @@ Here's an example of proper error handling for tools:
   <Tab title="Python">
     ```python
     try:
-        # Tool operation
+        # ツール操作
         result = perform_operation()
         return types.CallToolResult(
             content=[
                 types.TextContent(
                     type="text",
-                    text=f"Operation successful: {result}"
+                    text=f"操作成功: {result}"
                 )
             ]
         )
@@ -737,7 +775,7 @@ Here's an example of proper error handling for tools:
             content=[
                 types.TextContent(
                     type="text",
-                    text=f"Error: {str(error)}"
+                    text=f"エラー: {str(error)}"
                 )
             ]
         )
@@ -745,42 +783,42 @@ Here's an example of proper error handling for tools:
   </Tab>
 </Tabs>
 
-This approach allows the LLM to see that an error occurred and potentially take corrective action or request human intervention.
+このアプローチにより、LLM はエラーが発生したことを確認し、潜在的に是正措置を講じたり人間の介入を要求したりできます。
 
-## Tool annotations
+## ツールアノテーション
 
-Tool annotations provide additional metadata about a tool's behavior, helping clients understand how to present and manage tools. These annotations are hints that describe the nature and impact of a tool, but should not be relied upon for security decisions.
+ツールアノテーションは、ツールの動作に関する追加のメタデータを提供し、クライアントがツールの提示と管理方法を理解するのに役立ちます。これらのアノテーションは、ツールの性質と影響を記述するヒントですが、セキュリティの決定には依存すべきではありません。
 
-### Purpose of tool annotations
+### ツールアノテーションの目的
 
-Tool annotations serve several key purposes:
+ツールアノテーションはいくつかの重要な目的を果たします:
 
-1. Provide UX-specific information without affecting model context
-2. Help clients categorize and present tools appropriately
-3. Convey information about a tool's potential side effects
-4. Assist in developing intuitive interfaces for tool approval
+1. モデルのコンテキストに影響を与えずに UX 固有の情報を提供
+2. クライアントがツールを適切に分類して提示するのを支援
+3. ツールの潜在的な副作用に関する情報を伝達
+4. ツール承認のための直感的なインターフェースの開発を支援
 
-### Available tool annotations
+### 利用可能なツールアノテーション
 
-The MCP specification defines the following annotations for tools:
+MCP 仕様は、ツールに対して以下のアノテーションを定義しています:
 
-| Annotation        | Type    | Default | Description                                                                                                                          |
-| ----------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `title`           | string  | -       | A human-readable title for the tool, useful for UI display                                                                           |
-| `readOnlyHint`    | boolean | false   | If true, indicates the tool does not modify its environment                                                                          |
-| `destructiveHint` | boolean | true    | If true, the tool may perform destructive updates (only meaningful when `readOnlyHint` is false)                                     |
-| `idempotentHint`  | boolean | false   | If true, calling the tool repeatedly with the same arguments has no additional effect (only meaningful when `readOnlyHint` is false) |
-| `openWorldHint`   | boolean | true    | If true, the tool may interact with an "open world" of external entities                                                             |
+| アノテーション    | タイプ  | デフォルト | 説明                                                                                                               |
+| ----------------- | ------- | ---------- | ------------------------------------------------------------------------------------------------------------------ |
+| `title`           | string  | -          | ツールの人間が読めるタイトル、UI 表示に便利                                                                        |
+| `readOnlyHint`    | boolean | false      | true の場合、ツールは環境を変更しないことを示す                                                                    |
+| `destructiveHint` | boolean | true       | true の場合、ツールは破壊的な更新を実行する可能性がある（`readOnlyHint`が false の場合のみ意味がある）             |
+| `idempotentHint`  | boolean | false      | true の場合、同じ引数でツールを繰り返し呼び出しても追加の効果はない（`readOnlyHint`が false の場合のみ意味がある） |
+| `openWorldHint`   | boolean | true       | true の場合、ツールは外部エンティティの「オープンワールド」と対話する可能性がある                                  |
 
-### Example usage
+### 使用例
 
-Here's how to define tools with annotations for different scenarios:
+異なるシナリオのアノテーション付きツールを定義する方法は以下の通りです:
 
 ```typescript
-// A read-only search tool
+// 読み取り専用検索ツール
 {
   name: "web_search",
-  description: "Search the web for information",
+  description: "情報をWeb検索する",
   inputSchema: {
     type: "object",
     properties: {
@@ -789,16 +827,16 @@ Here's how to define tools with annotations for different scenarios:
     required: ["query"]
   },
   annotations: {
-    title: "Web Search",
+    title: "Web検索",
     readOnlyHint: true,
     openWorldHint: true
   }
 }
 
-// A destructive file deletion tool
+// 破壊的なファイル削除ツール
 {
   name: "delete_file",
-  description: "Delete a file from the filesystem",
+  description: "ファイルシステムからファイルを削除する",
   inputSchema: {
     type: "object",
     properties: {
@@ -807,7 +845,7 @@ Here's how to define tools with annotations for different scenarios:
     required: ["path"]
   },
   annotations: {
-    title: "Delete File",
+    title: "ファイル削除",
     readOnlyHint: false,
     destructiveHint: true,
     idempotentHint: true,
@@ -815,10 +853,10 @@ Here's how to define tools with annotations for different scenarios:
   }
 }
 
-// A non-destructive database record creation tool
+// 非破壊的なデータベースレコード作成ツール
 {
   name: "create_record",
-  description: "Create a new record in the database",
+  description: "データベースに新しいレコードを作成する",
   inputSchema: {
     type: "object",
     properties: {
@@ -828,7 +866,7 @@ Here's how to define tools with annotations for different scenarios:
     required: ["table", "data"]
   },
   annotations: {
-    title: "Create Database Record",
+    title: "データベースレコード作成",
     readOnlyHint: false,
     destructiveHint: false,
     idempotentHint: false,
@@ -837,7 +875,7 @@ Here's how to define tools with annotations for different scenarios:
 }
 ```
 
-### Integrating annotations in server implementation
+### サーバー実装でのアノテーションの統合
 
 <Tabs>
   <Tab title="TypeScript">
@@ -846,7 +884,7 @@ Here's how to define tools with annotations for different scenarios:
       return {
         tools: [{
           name: "calculate_sum",
-          description: "Add two numbers together",
+          description: "2つの数値を加算する",
           inputSchema: {
             type: "object",
             properties: {
@@ -856,7 +894,7 @@ Here's how to define tools with annotations for different scenarios:
             required: ["a", "b"]
           },
           annotations: {
-            title: "Calculate Sum",
+            title: "合計計算",
             readOnlyHint: true,
             openWorldHint: false
           }
@@ -874,42 +912,43 @@ Here's how to define tools with annotations for different scenarios:
 
     @mcp.tool(
         annotations={
-            "title": "Calculate Sum",
+            "title": "合計計算",
             "readOnlyHint": True,
             "openWorldHint": False
         }
     )
     async def calculate_sum(a: float, b: float) -> str:
-        """Add two numbers together.
+        """2つの数値を加算します。
 
         Args:
-            a: First number to add
-            b: Second number to add
+            a: 加算する最初の数値
+            b: 加算する2番目の数値
         """
         result = a + b
         return str(result)
     ```
+
   </Tab>
 </Tabs>
 
-### Best practices for tool annotations
+### ツールアノテーションのベストプラクティス
 
-1. **Be accurate about side effects**: Clearly indicate whether a tool modifies its environment and whether those modifications are destructive.
+1. **副作用について正確に**: ツールが環境を変更するかどうか、およびそれらの変更が破壊的かどうかを明確に示す。
 
-2. **Use descriptive titles**: Provide human-friendly titles that clearly describe the tool's purpose.
+2. **説明的なタイトルを使用**: ツールの目的を明確に説明する人間にわかりやすいタイトルを提供する。
 
-3. **Indicate idempotency properly**: Mark tools as idempotent only if repeated calls with the same arguments truly have no additional effect.
+3. **冪等性を適切に示す**: 同じ引数での繰り返し呼び出しが本当に追加の効果を持たない場合にのみ、ツールを冪等としてマークする。
 
-4. **Set appropriate open/closed world hints**: Indicate whether a tool interacts with a closed system (like a database) or an open system (like the web).
+4. **適切なオープン/クローズドワールドヒントを設定**: ツールがクローズドシステム（データベースなど）と対話するか、オープンシステム（Web など）と対話するかを示す。
 
-5. **Remember annotations are hints**: All properties in ToolAnnotations are hints and not guaranteed to provide a faithful description of tool behavior. Clients should never make security-critical decisions based solely on annotations.
+5. **アノテーションはヒントであることを覚えておく**: ToolAnnotations のすべてのプロパティはヒントであり、ツールの動作の忠実な説明を提供することは保証されていません。クライアントは、アノテーションのみに基づいてセキュリティクリティカルな決定を行うべきではありません。
 
-## Testing tools
+## ツールのテスト
 
-A comprehensive testing strategy for MCP tools should cover:
+MCP ツールの包括的なテスト戦略は以下をカバーする必要があります:
 
-* **Functional testing**: Verify tools execute correctly with valid inputs and handle invalid inputs appropriately
-* **Integration testing**: Test tool interaction with external systems using both real and mocked dependencies
-* **Security testing**: Validate authentication, authorization, input sanitization, and rate limiting
-* **Performance testing**: Check behavior under load, timeout handling, and resource cleanup
-* **Error handling**: Ensure tools properly report errors through the MCP protocol and clean up resources
+- **機能テスト**: 有効な入力でツールが正しく実行され、無効な入力を適切に処理することを検証
+- **統合テスト**: 実際の依存関係とモックされた依存関係の両方を使用して、外部システムとのツールの相互作用をテスト
+- **セキュリティテスト**: 認証、認可、入力サニタイゼーション、レート制限を検証
+- **パフォーマンステスト**: 負荷下の動作、タイムアウト処理、リソースクリーンアップをチェック
+- **エラーハンドリング**: ツールが MCP プロトコルを通じてエラーを適切に報告し、リソースをクリーンアップすることを確認

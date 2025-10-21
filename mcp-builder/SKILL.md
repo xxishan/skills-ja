@@ -1,328 +1,360 @@
 ---
 name: mcp-builder
-description: Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. Use when building MCP servers to integrate external APIs or services, whether in Python (FastMCP) or Node/TypeScript (MCP SDK).
-license: Complete terms in LICENSE.txt
+description: LLMが適切に設計されたツールを通じて外部サービスと対話できるようにする高品質なMCP（Model Context Protocol）サーバーを作成するためのガイド。Python（FastMCP）またはNode/TypeScript（MCP SDK）で外部APIやサービスを統合するMCPサーバーを構築する際に使用します。
+license: 完全な条項はLICENSE.txtを参照
 ---
 
-# MCP Server Development Guide
+# MCP サーバー開発ガイド
 
-## Overview
+## 概要
 
-To create high-quality MCP (Model Context Protocol) servers that enable LLMs to effectively interact with external services, use this skill. An MCP server provides tools that allow LLMs to access external services and APIs. The quality of an MCP server is measured by how well it enables LLMs to accomplish real-world tasks using the tools provided.
-
----
-
-# Process
-
-## 🚀 High-Level Workflow
-
-Creating a high-quality MCP server involves four main phases:
-
-### Phase 1: Deep Research and Planning
-
-#### 1.1 Understand Agent-Centric Design Principles
-
-Before diving into implementation, understand how to design tools for AI agents by reviewing these principles:
-
-**Build for Workflows, Not Just API Endpoints:**
-- Don't simply wrap existing API endpoints - build thoughtful, high-impact workflow tools
-- Consolidate related operations (e.g., `schedule_event` that both checks availability and creates event)
-- Focus on tools that enable complete tasks, not just individual API calls
-- Consider what workflows agents actually need to accomplish
-
-**Optimize for Limited Context:**
-- Agents have constrained context windows - make every token count
-- Return high-signal information, not exhaustive data dumps
-- Provide "concise" vs "detailed" response format options
-- Default to human-readable identifiers over technical codes (names over IDs)
-- Consider the agent's context budget as a scarce resource
-
-**Design Actionable Error Messages:**
-- Error messages should guide agents toward correct usage patterns
-- Suggest specific next steps: "Try using filter='active_only' to reduce results"
-- Make errors educational, not just diagnostic
-- Help agents learn proper tool usage through clear feedback
-
-**Follow Natural Task Subdivisions:**
-- Tool names should reflect how humans think about tasks
-- Group related tools with consistent prefixes for discoverability
-- Design tools around natural workflows, not just API structure
-
-**Use Evaluation-Driven Development:**
-- Create realistic evaluation scenarios early
-- Let agent feedback drive tool improvements
-- Prototype quickly and iterate based on actual agent performance
-
-#### 1.3 Study MCP Protocol Documentation
-
-**Fetch the latest MCP protocol documentation:**
-
-Use WebFetch to load: `https://modelcontextprotocol.io/llms-full.txt`
-
-This comprehensive document contains the complete MCP specification and guidelines.
-
-#### 1.4 Study Framework Documentation
-
-**Load and read the following reference files:**
-
-- **MCP Best Practices**: [📋 View Best Practices](./reference/mcp_best_practices.md) - Core guidelines for all MCP servers
-
-**For Python implementations, also load:**
-- **Python SDK Documentation**: Use WebFetch to load `https://raw.githubusercontent.com/modelcontextprotocol/python-sdk/main/README.md`
-- [🐍 Python Implementation Guide](./reference/python_mcp_server.md) - Python-specific best practices and examples
-
-**For Node/TypeScript implementations, also load:**
-- **TypeScript SDK Documentation**: Use WebFetch to load `https://raw.githubusercontent.com/modelcontextprotocol/typescript-sdk/main/README.md`
-- [⚡ TypeScript Implementation Guide](./reference/node_mcp_server.md) - Node/TypeScript-specific best practices and examples
-
-#### 1.5 Exhaustively Study API Documentation
-
-To integrate a service, read through **ALL** available API documentation:
-- Official API reference documentation
-- Authentication and authorization requirements
-- Rate limiting and pagination patterns
-- Error responses and status codes
-- Available endpoints and their parameters
-- Data models and schemas
-
-**To gather comprehensive information, use web search and the WebFetch tool as needed.**
-
-#### 1.6 Create a Comprehensive Implementation Plan
-
-Based on your research, create a detailed plan that includes:
-
-**Tool Selection:**
-- List the most valuable endpoints/operations to implement
-- Prioritize tools that enable the most common and important use cases
-- Consider which tools work together to enable complex workflows
-
-**Shared Utilities and Helpers:**
-- Identify common API request patterns
-- Plan pagination helpers
-- Design filtering and formatting utilities
-- Plan error handling strategies
-
-**Input/Output Design:**
-- Define input validation models (Pydantic for Python, Zod for TypeScript)
-- Design consistent response formats (e.g., JSON or Markdown), and configurable levels of detail (e.g., Detailed or Concise)
-- Plan for large-scale usage (thousands of users/resources)
-- Implement character limits and truncation strategies (e.g., 25,000 tokens)
-
-**Error Handling Strategy:**
-- Plan graceful failure modes
-- Design clear, actionable, LLM-friendly, natural language error messages which prompt further action
-- Consider rate limiting and timeout scenarios
-- Handle authentication and authorization errors
+LLM が外部サービスと効果的に対話できるようにする高品質な MCP（Model Context Protocol）サーバーを作成するには、このスキルを使用します。MCP サーバーは、LLM が外部サービスや API にアクセスできるようにするツールを提供します。MCP サーバーの品質は、提供されるツールを使用して LLM が実世界のタスクをどれだけ効果的に達成できるかによって測定されます。
 
 ---
 
-### Phase 2: Implementation
+# プロセス
 
-Now that you have a comprehensive plan, begin implementation following language-specific best practices.
+## 🚀 高レベルワークフロー
 
-#### 2.1 Set Up Project Structure
+高品質な MCP サーバーの作成には、4 つの主要なフェーズがあります:
 
-**For Python:**
-- Create a single `.py` file or organize into modules if complex (see [🐍 Python Guide](./reference/python_mcp_server.md))
-- Use the MCP Python SDK for tool registration
-- Define Pydantic models for input validation
+### フェーズ 1: 徹底的なリサーチと計画
 
-**For Node/TypeScript:**
-- Create proper project structure (see [⚡ TypeScript Guide](./reference/node_mcp_server.md))
-- Set up `package.json` and `tsconfig.json`
-- Use MCP TypeScript SDK
-- Define Zod schemas for input validation
+#### 1.1 エージェント中心の設計原則を理解する
 
-#### 2.2 Implement Core Infrastructure First
+実装に入る前に、これらの原則を確認して AI エージェント向けのツール設計方法を理解します:
 
-**To begin implementation, create shared utilities before implementing tools:**
-- API request helper functions
-- Error handling utilities
-- Response formatting functions (JSON and Markdown)
-- Pagination helpers
-- Authentication/token management
+**ワークフロー向けに構築し、単なる API エンドポイントではない:**
 
-#### 2.3 Implement Tools Systematically
+- 既存の API エンドポイントを単純にラップするのではなく、思慮深く影響力の高いワークフローツールを構築する
+- 関連する操作を統合する（例: 可用性をチェックしてイベントを作成する`schedule_event`）
+- 個別の API 呼び出しではなく、完全なタスクを可能にするツールに焦点を当てる
+- エージェントが実際に達成する必要があるワークフローを考慮する
 
-For each tool in the plan:
+**限られたコンテキストに最適化:**
 
-**Define Input Schema:**
-- Use Pydantic (Python) or Zod (TypeScript) for validation
-- Include proper constraints (min/max length, regex patterns, min/max values, ranges)
-- Provide clear, descriptive field descriptions
-- Include diverse examples in field descriptions
+- エージェントは制約されたコンテキストウィンドウを持つ - すべてのトークンを有効に活用する
+- 包括的なデータダンプではなく、シグナルの高い情報を返す
+- 「簡潔」vs「詳細」な応答フォーマットオプションを提供する
+- 技術的なコードよりも人間が読める ID を優先する（ID よりも名前）
+- エージェントのコンテキスト予算を希少なリソースとして考慮する
 
-**Write Comprehensive Docstrings/Descriptions:**
-- One-line summary of what the tool does
-- Detailed explanation of purpose and functionality
-- Explicit parameter types with examples
-- Complete return type schema
-- Usage examples (when to use, when not to use)
-- Error handling documentation, which outlines how to proceed given specific errors
+**実行可能なエラーメッセージを設計:**
 
-**Implement Tool Logic:**
-- Use shared utilities to avoid code duplication
-- Follow async/await patterns for all I/O
-- Implement proper error handling
-- Support multiple response formats (JSON and Markdown)
-- Respect pagination parameters
-- Check character limits and truncate appropriately
+- エラーメッセージはエージェントを正しい使用パターンへと導くべき
+- 具体的な次のステップを提案する: "結果を減らすには filter='active_only' を試してください"
+- 診断的なだけでなく、教育的なエラーにする
+- 明確なフィードバックを通じてエージェントが適切なツール使用を学べるようにする
 
-**Add Tool Annotations:**
-- `readOnlyHint`: true (for read-only operations)
-- `destructiveHint`: false (for non-destructive operations)
-- `idempotentHint`: true (if repeated calls have same effect)
-- `openWorldHint`: true (if interacting with external systems)
+**自然なタスク分割に従う:**
 
-#### 2.4 Follow Language-Specific Best Practices
+- ツール名は人間がタスクについて考える方法を反映すべき
+- 発見しやすいように一貫したプレフィックスで関連ツールをグループ化する
+- API 構造だけでなく、自然なワークフローに基づいてツールを設計する
 
-**At this point, load the appropriate language guide:**
+**評価駆動型開発を使用:**
 
-**For Python: Load [🐍 Python Implementation Guide](./reference/python_mcp_server.md) and ensure the following:**
-- Using MCP Python SDK with proper tool registration
-- Pydantic v2 models with `model_config`
-- Type hints throughout
-- Async/await for all I/O operations
-- Proper imports organization
-- Module-level constants (CHARACTER_LIMIT, API_BASE_URL)
+- 早期に現実的な評価シナリオを作成する
+- エージェントのフィードバックでツールの改善を推進する
+- 実際のエージェントのパフォーマンスに基づいて迅速にプロトタイプを作成し、反復する
 
-**For Node/TypeScript: Load [⚡ TypeScript Implementation Guide](./reference/node_mcp_server.md) and ensure the following:**
-- Using `server.registerTool` properly
-- Zod schemas with `.strict()`
-- TypeScript strict mode enabled
-- No `any` types - use proper types
-- Explicit Promise<T> return types
-- Build process configured (`npm run build`)
+#### 1.3 MCP プロトコルドキュメントを学習する
 
----
+**最新の MCP プロトコルドキュメントを取得:**
 
-### Phase 3: Review and Refine
+WebFetch を使用してロード: `https://modelcontextprotocol.io/llms-full.txt`
 
-After initial implementation:
+この包括的なドキュメントには、完全な MCP 仕様とガイドラインが含まれています。
 
-#### 3.1 Code Quality Review
+#### 1.4 フレームワークドキュメントを学習する
 
-To ensure quality, review the code for:
-- **DRY Principle**: No duplicated code between tools
-- **Composability**: Shared logic extracted into functions
-- **Consistency**: Similar operations return similar formats
-- **Error Handling**: All external calls have error handling
-- **Type Safety**: Full type coverage (Python type hints, TypeScript types)
-- **Documentation**: Every tool has comprehensive docstrings/descriptions
+**以下の参照ファイルをロードして読む:**
 
-#### 3.2 Test and Build
+- **MCP ベストプラクティス**: [📋 ベストプラクティスを見る](./reference/mcp_best_practices.md) - すべての MCP サーバーのコアガイドライン
 
-**Important:** MCP servers are long-running processes that wait for requests over stdio/stdin or sse/http. Running them directly in your main process (e.g., `python server.py` or `node dist/index.js`) will cause your process to hang indefinitely.
+**Python 実装の場合、以下もロード:**
 
-**Safe ways to test the server:**
-- Use the evaluation harness (see Phase 4) - recommended approach
-- Run the server in tmux to keep it outside your main process
-- Use a timeout when testing: `timeout 5s python server.py`
+- **Python SDK ドキュメント**: WebFetch を使用して`https://raw.githubusercontent.com/modelcontextprotocol/python-sdk/main/README.md`をロード
+- [🐍 Python 実装ガイド](./reference/python_mcp_server.md) - Python 固有のベストプラクティスと例
 
-**For Python:**
-- Verify Python syntax: `python -m py_compile your_server.py`
-- Check imports work correctly by reviewing the file
-- To manually test: Run server in tmux, then test with evaluation harness in main process
-- Or use the evaluation harness directly (it manages the server for stdio transport)
+**Node/TypeScript 実装の場合、以下もロード:**
 
-**For Node/TypeScript:**
-- Run `npm run build` and ensure it completes without errors
-- Verify dist/index.js is created
-- To manually test: Run server in tmux, then test with evaluation harness in main process
-- Or use the evaluation harness directly (it manages the server for stdio transport)
+- **TypeScript SDK ドキュメント**: WebFetch を使用して`https://raw.githubusercontent.com/modelcontextprotocol/typescript-sdk/main/README.md`をロード
+- [⚡ TypeScript 実装ガイド](./reference/node_mcp_server.md) - Node/TypeScript 固有のベストプラクティスと例
 
-#### 3.3 Use Quality Checklist
+#### 1.5 API ドキュメントを徹底的に学習する
 
-To verify implementation quality, load the appropriate checklist from the language-specific guide:
-- Python: see "Quality Checklist" in [🐍 Python Guide](./reference/python_mcp_server.md)
-- Node/TypeScript: see "Quality Checklist" in [⚡ TypeScript Guide](./reference/node_mcp_server.md)
+サービスを統合するには、**すべての**利用可能な API ドキュメントを読み通します:
+
+- 公式 API リファレンスドキュメント
+- 認証と認可の要件
+- レート制限とページネーションパターン
+- エラーレスポンスとステータスコード
+- 利用可能なエンドポイントとそのパラメータ
+- データモデルとスキーマ
+
+**包括的な情報を収集するには、必要に応じて Web 検索と WebFetch ツールを使用します。**
+
+#### 1.6 包括的な実装計画を作成する
+
+リサーチに基づいて、以下を含む詳細な計画を作成します:
+
+**ツールの選択:**
+
+- 実装する最も価値のあるエンドポイント/操作をリストアップする
+- 最も一般的で重要なユースケースを可能にするツールを優先する
+- 複雑なワークフローを可能にするために連携するツールを考慮する
+
+**共有ユーティリティとヘルパー:**
+
+- 共通の API リクエストパターンを識別する
+- ページネーションヘルパーを計画する
+- フィルタリングとフォーマットユーティリティを設計する
+- エラーハンドリング戦略を計画する
+
+**入出力設計:**
+
+- 入力検証モデルを定義する（Python は Pydantic、TypeScript は Zod）
+- 一貫した応答フォーマットを設計する（例: JSON または Markdown）、および設定可能な詳細レベル（例: 詳細または簡潔）
+- 大規模使用（数千のユーザー/リソース）を計画する
+- 文字制限と切り捨て戦略を実装する（例: 25,000 トークン）
+
+**エラーハンドリング戦略:**
+
+- グレースフルな失敗モードを計画する
+- 明確で実行可能な、LLM フレンドリーで、さらなるアクションを促す自然言語のエラーメッセージを設計する
+- レート制限とタイムアウトシナリオを考慮する
+- 認証と認可のエラーを処理する
 
 ---
 
-### Phase 4: Create Evaluations
+### フェーズ 2: 実装
 
-After implementing your MCP server, create comprehensive evaluations to test its effectiveness.
+包括的な計画ができたので、言語固有のベストプラクティスに従って実装を開始します。
 
-**Load [✅ Evaluation Guide](./reference/evaluation.md) for complete evaluation guidelines.**
+#### 2.1 プロジェクト構造をセットアップする
 
-#### 4.1 Understand Evaluation Purpose
+**Python の場合:**
 
-Evaluations test whether LLMs can effectively use your MCP server to answer realistic, complex questions.
+- 単一の`.py`ファイルを作成するか、複雑な場合はモジュールに整理する（[🐍 Python ガイド](./reference/python_mcp_server.md)参照）
+- MCP Python SDK をツール登録に使用する
+- 入力検証用に Pydantic モデルを定義する
 
-#### 4.2 Create 10 Evaluation Questions
+**Node/TypeScript の場合:**
 
-To create effective evaluations, follow the process outlined in the evaluation guide:
+- 適切なプロジェクト構造を作成する（[⚡ TypeScript ガイド](./reference/node_mcp_server.md)参照）
+- `package.json`と`tsconfig.json`をセットアップする
+- MCP TypeScript SDK を使用する
+- 入力検証用に Zod スキーマを定義する
 
-1. **Tool Inspection**: List available tools and understand their capabilities
-2. **Content Exploration**: Use READ-ONLY operations to explore available data
-3. **Question Generation**: Create 10 complex, realistic questions
-4. **Answer Verification**: Solve each question yourself to verify answers
+#### 2.2 まずコアインフラストラクチャを実装する
 
-#### 4.3 Evaluation Requirements
+**実装を開始するには、ツールを実装する前に共有ユーティリティを作成します:**
 
-Each question must be:
-- **Independent**: Not dependent on other questions
-- **Read-only**: Only non-destructive operations required
-- **Complex**: Requiring multiple tool calls and deep exploration
-- **Realistic**: Based on real use cases humans would care about
-- **Verifiable**: Single, clear answer that can be verified by string comparison
-- **Stable**: Answer won't change over time
+- API リクエストヘルパー関数
+- エラーハンドリングユーティリティ
+- 応答フォーマット関数（JSON と Markdown）
+- ページネーションヘルパー
+- 認証/トークン管理
 
-#### 4.4 Output Format
+#### 2.3 ツールを体系的に実装する
 
-Create an XML file with this structure:
+計画内の各ツールに対して:
+
+**入力スキーマを定義:**
+
+- 検証に Pydantic（Python）または Zod（TypeScript）を使用する
+- 適切な制約を含める（最小/最大長、正規表現パターン、最小/最大値、範囲）
+- 明確で説明的なフィールドの説明を提供する
+- フィールドの説明に多様な例を含める
+
+**包括的な docstring/説明を書く:**
+
+- ツールが何をするかの 1 行の要約
+- 目的と機能の詳細な説明
+- 例付きの明示的なパラメータタイプ
+- 完全な戻り値タイプスキーマ
+- 使用例（いつ使用するか、いつ使用しないか）
+- エラーハンドリングドキュメント - 特定のエラーが発生した場合の対処方法を概説
+
+**ツールロジックを実装:**
+
+- コードの重複を避けるために共有ユーティリティを使用する
+- すべての I/O に async/await パターンに従う
+- 適切なエラーハンドリングを実装する
+- 複数の応答フォーマット（JSON と Markdown）をサポートする
+- ページネーションパラメータを尊重する
+- 文字制限をチェックし、適切に切り捨てる
+
+**ツールアノテーションを追加:**
+
+- `readOnlyHint`: true（読み取り専用操作の場合）
+- `destructiveHint`: false（非破壊的操作の場合）
+- `idempotentHint`: true（繰り返し呼び出しが同じ効果を持つ場合）
+- `openWorldHint`: true（外部システムと対話する場合）
+
+#### 2.4 言語固有のベストプラクティスに従う
+
+**この時点で、適切な言語ガイドをロードします:**
+
+**Python の場合: [🐍 Python 実装ガイド](./reference/python_mcp_server.md)をロードし、以下を確認:**
+
+- 適切なツール登録で MCP Python SDK を使用
+- `model_config`を持つ Pydantic v2 モデル
+- 全体にわたるタイプヒント
+- すべての I/O 操作に async/await
+- 適切なインポートの整理
+- モジュールレベルの定数（CHARACTER_LIMIT、API_BASE_URL）
+
+**Node/TypeScript の場合: [⚡ TypeScript 実装ガイド](./reference/node_mcp_server.md)をロードし、以下を確認:**
+
+- `server.registerTool`を適切に使用
+- `.strict()`を持つ Zod スキーマ
+- TypeScript ストリクトモードを有効化
+- `any`タイプを使用しない - 適切な型を使用
+- 明示的な Promise<T>戻り値タイプ
+- ビルドプロセスを設定（`npm run build`）
+
+---
+
+### フェーズ 3: レビューと改善
+
+初期実装の後:
+
+#### 3.1 コード品質レビュー
+
+品質を確保するため、コードを以下の点でレビューします:
+
+- **DRY 原則**: ツール間でコードの重複がない
+- **構成可能性**: 共有ロジックが関数に抽出されている
+- **一貫性**: 類似の操作が類似のフォーマットを返す
+- **エラーハンドリング**: すべての外部呼び出しにエラーハンドリングがある
+- **型安全性**: 完全な型カバレッジ（Python タイプヒント、TypeScript 型）
+- **ドキュメント**: すべてのツールに包括的な docstring/説明がある
+
+#### 3.2 テストとビルド
+
+**重要:** MCP サーバーは、stdio/stdin または sse/http 経由でリクエストを待つ長時間実行プロセスです。メインプロセスで直接実行する（例: `python server.py`や`node dist/index.js`）と、プロセスが無期限にハングします。
+
+**サーバーをテストする安全な方法:**
+
+- 評価ハーネスを使用する（フェーズ 4 参照） - 推奨アプローチ
+- メインプロセスの外側に保つために tmux でサーバーを実行する
+- テスト時にタイムアウトを使用する: `timeout 5s python server.py`
+
+**Python の場合:**
+
+- Python 構文を検証: `python -m py_compile your_server.py`
+- ファイルを確認してインポートが正しく動作することをチェック
+- 手動テストする場合: tmux でサーバーを実行し、メインプロセスで評価ハーネスでテスト
+- または評価ハーネスを直接使用（stdio 転送用にサーバーを管理します）
+
+**Node/TypeScript の場合:**
+
+- `npm run build`を実行し、エラーなく完了することを確認
+- dist/index.js が作成されたことを確認
+- 手動テストする場合: tmux でサーバーを実行し、メインプロセスで評価ハーネスでテスト
+- または評価ハーネスを直接使用（stdio 転送用にサーバーを管理します）
+
+#### 3.3 品質チェックリストを使用
+
+実装品質を検証するには、言語固有のガイドから適切なチェックリストをロードします:
+
+- Python: [🐍 Python ガイド](./reference/python_mcp_server.md)の「品質チェックリスト」を参照
+- Node/TypeScript: [⚡ TypeScript ガイド](./reference/node_mcp_server.md)の「品質チェックリスト」を参照
+
+---
+
+### フェーズ 4: 評価を作成
+
+MCP サーバーを実装した後、その効果をテストするための包括的な評価を作成します。
+
+**完全な評価ガイドラインについては[✅ 評価ガイド](./reference/evaluation.md)をロードします。**
+
+#### 4.1 評価の目的を理解する
+
+評価は、LLM が MCP サーバーを使用して現実的で複雑な質問に効果的に答えられるかをテストします。
+
+#### 4.2 10 個の評価質問を作成する
+
+効果的な評価を作成するには、評価ガイドに記載されているプロセスに従います:
+
+1. **ツール検査**: 利用可能なツールをリストアップし、その機能を理解する
+2. **コンテンツ探索**: 読み取り専用操作を使用して利用可能なデータを探索する
+3. **質問生成**: 10 個の複雑で現実的な質問を作成する
+4. **回答検証**: 各質問を自分で解いて回答を検証する
+
+#### 4.3 評価要件
+
+各質問は以下である必要があります:
+
+- **独立している**: 他の質問に依存しない
+- **読み取り専用**: 非破壊的な操作のみが必要
+- **複雑**: 複数のツール呼び出しと深い探索が必要
+- **現実的**: 人間が気にする実際のユースケースに基づいている
+- **検証可能**: 文字列比較で検証できる単一の明確な回答
+- **安定**: 回答が時間とともに変化しない
+
+#### 4.4 出力フォーマット
+
+以下の構造で XML ファイルを作成します:
 
 ```xml
 <evaluation>
   <qa_pair>
-    <question>Find discussions about AI model launches with animal codenames. One model needed a specific safety designation that uses the format ASL-X. What number X was being determined for the model named after a spotted wild cat?</question>
+    <question>動物のコードネームを持つAIモデルのローンチに関する議論を見つけてください。あるモデルは、ASL-Xという形式を使用する特定の安全性指定が必要でした。斑点のある野生の猫にちなんで名付けられたモデルに対して決定されていたXの数字は何でしたか？</question>
     <answer>3</answer>
   </qa_pair>
-<!-- More qa_pairs... -->
+<!-- さらなるqa_pairs... -->
 </evaluation>
 ```
 
 ---
 
-# Reference Files
+# 参照ファイル
 
-## 📚 Documentation Library
+## 📚 ドキュメントライブラリ
 
-Load these resources as needed during development:
+開発中に必要に応じてこれらのリソースをロードします:
 
-### Core MCP Documentation (Load First)
-- **MCP Protocol**: Fetch from `https://modelcontextprotocol.io/llms-full.txt` - Complete MCP specification
-- [📋 MCP Best Practices](./reference/mcp_best_practices.md) - Universal MCP guidelines including:
-  - Server and tool naming conventions
-  - Response format guidelines (JSON vs Markdown)
-  - Pagination best practices
-  - Character limits and truncation strategies
-  - Tool development guidelines
-  - Security and error handling standards
+### コア MCP ドキュメント（最初にロード）
 
-### SDK Documentation (Load During Phase 1/2)
-- **Python SDK**: Fetch from `https://raw.githubusercontent.com/modelcontextprotocol/python-sdk/main/README.md`
-- **TypeScript SDK**: Fetch from `https://raw.githubusercontent.com/modelcontextprotocol/typescript-sdk/main/README.md`
+- **MCP プロトコル**: `https://modelcontextprotocol.io/llms-full.txt`から取得 - 完全な MCP 仕様
+- [📋 MCP ベストプラクティス](./reference/mcp_best_practices.md) - 以下を含む普遍的な MCP ガイドライン:
+  - サーバーとツールの命名規則
+  - 応答フォーマットガイドライン（JSON vs Markdown）
+  - ページネーションベストプラクティス
+  - 文字制限と切り捨て戦略
+  - ツール開発ガイドライン
+  - セキュリティとエラーハンドリング標準
 
-### Language-Specific Implementation Guides (Load During Phase 2)
-- [🐍 Python Implementation Guide](./reference/python_mcp_server.md) - Complete Python/FastMCP guide with:
-  - Server initialization patterns
-  - Pydantic model examples
-  - Tool registration with `@mcp.tool`
-  - Complete working examples
-  - Quality checklist
+### SDK ドキュメント（フェーズ 1/2 中にロード）
 
-- [⚡ TypeScript Implementation Guide](./reference/node_mcp_server.md) - Complete TypeScript guide with:
-  - Project structure
-  - Zod schema patterns
-  - Tool registration with `server.registerTool`
-  - Complete working examples
-  - Quality checklist
+- **Python SDK**: `https://raw.githubusercontent.com/modelcontextprotocol/python-sdk/main/README.md`から取得
+- **TypeScript SDK**: `https://raw.githubusercontent.com/modelcontextprotocol/typescript-sdk/main/README.md`から取得
 
-### Evaluation Guide (Load During Phase 4)
-- [✅ Evaluation Guide](./reference/evaluation.md) - Complete evaluation creation guide with:
-  - Question creation guidelines
-  - Answer verification strategies
-  - XML format specifications
-  - Example questions and answers
-  - Running an evaluation with the provided scripts
+### 言語固有の実装ガイド（フェーズ 2 中にロード）
+
+- [🐍 Python 実装ガイド](./reference/python_mcp_server.md) - 以下を含む完全な Python/FastMCP ガイド:
+
+  - サーバー初期化パターン
+  - Pydantic モデルの例
+  - `@mcp.tool`でのツール登録
+  - 完全な動作例
+  - 品質チェックリスト
+
+- [⚡ TypeScript 実装ガイド](./reference/node_mcp_server.md) - 以下を含む完全な TypeScript ガイド:
+  - プロジェクト構造
+  - Zod スキーマパターン
+  - `server.registerTool`でのツール登録
+  - 完全な動作例
+  - 品質チェックリスト
+
+### 評価ガイド（フェーズ 4 中にロード）
+
+- [✅ 評価ガイド](./reference/evaluation.md) - 以下を含む完全な評価作成ガイド:
+  - 質問作成ガイドライン
+  - 回答検証戦略
+  - XML フォーマット仕様
+  - 質問と回答の例
+  - 提供されたスクリプトで評価を実行する
